@@ -10,7 +10,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/semphr.h"
-#include "freertos/timers.h"
 #include "lwip/netdb.h"
 #include "lwip/sockets.h"
 #include "esp_timer.h"
@@ -24,7 +23,6 @@ static const char *TAG = "app_wifi";
 #define BIT_CONNECTED BIT0
 
 static EventGroupHandle_t s_events;
-static TimerHandle_t s_retry_timer;   // kept for reassociate(); the manager task owns connecting
 static TaskHandle_t s_mgr;
 static int s_backoff_ms = 1000;
 static bool s_started;
@@ -145,12 +143,6 @@ static void kick(void)
     if (s_events) xEventGroupSetBits(s_events, BIT_KICK);
 }
 
-static void retry_cb(TimerHandle_t t)
-{
-    (void)t;
-    kick();
-}
-
 static void on_event(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
     (void)arg;
@@ -176,8 +168,7 @@ esp_err_t app_wifi_start(void)
 {
     if (s_started) return ESP_OK;
     s_events = xEventGroupCreate();
-    s_retry_timer = xTimerCreate("wifi_retry", pdMS_TO_TICKS(1000), pdFALSE, NULL, retry_cb);
-    if (!s_events || !s_retry_timer) return ESP_ERR_NO_MEM;
+    if (!s_events) return ESP_ERR_NO_MEM;
     ESP_ERROR_CHECK(esp_netif_init());
     esp_err_t err = esp_event_loop_create_default();
     if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) return err;
@@ -218,7 +209,6 @@ const char *app_wifi_setup_error(void)
 void app_wifi_pause(void)
 {
     s_paused = true;
-    xTimerStop(s_retry_timer, 0);
     esp_wifi_disconnect();
 }
 

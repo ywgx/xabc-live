@@ -99,6 +99,19 @@ def analyse(lines: list[str]) -> dict:
     attempts = [l for l in lines if re.search(r"第 \d+ 次连接", l)]
     errors = [l for l in lines if l.startswith("E (") and "websocket_client: Client was not started" not in l]
     res = {"you": you, "ai": ai, "attempts": attempts, "errors": errors, "stats": stats}
+    # Reply latency: end of the injected question (testplay done) -> assistant audible.
+    def dev_ms(l):
+        m = re.search(r"\((\d+)\)", l)
+        return int(m.group(1)) if m else None
+    done = [dev_ms(l) for l in lines if "testplay done" in l]
+    if done and done[0] is not None:
+        on = [dev_ms(l) for l in lines if "app_audio: spk on" in l]
+        after = [t for t in on if t is not None and t > done[0]]
+        if after:
+            res["reply_ms"] = after[0] - done[0]
+    conn = [int(m.group(1)) for m in (re.search(r"连接成功，用时 (\d+) ms", l) for l in lines) if m]
+    if conn:
+        res["connect_ms"] = conn[-1]
     if len(stats) >= 2:
         (t0, a0, *_), last = stats[0], stats[-1]
         dt = (last[0] - t0) / 1000 or 1
@@ -281,6 +294,7 @@ def main() -> int:
             print(f"  你说：{res['you'] or '（没有识别到）'}")
             print(f"  AI ：{res['ai'] or '（没有回答）'}")
             if "down_rate" in res:
+                print(f"  连接 {res.get('connect_ms', '?')} ms  回答延迟 {res.get('reply_ms', '?')} ms")
                 print(f"  下行 {res['down_rate']:.1f}/s  上行 {res['up_rate']:.1f}/s  卡顿 {res['underrun']} 次  "
                       f"跳过静音 {res['skip']} 帧  丢弃 {res['spk_drop']} B  上行失败 {res['up_fail']}  "
                       f"上行丢包 {res['up_drop']}  最低内存 {res['min_heap']} B")

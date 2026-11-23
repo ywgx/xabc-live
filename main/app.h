@@ -57,11 +57,6 @@ extern volatile int g_spk_level;
 extern volatile uint32_t g_play_underruns;   // playback stalls (network jitter)
 extern volatile uint32_t g_play_dropped;     // downlink bytes dropped on a full buffer
 extern volatile uint32_t g_play_skipped;     // quiet frames skipped to cut accumulated delay
-// Echo measurement (debug only): mic/speaker loudness ratio while the assistant talks,
-// and mic loudness while it is silent.
-extern volatile uint32_t g_echo_hist[8];
-extern volatile uint32_t g_echo_spk_avg;
-extern volatile uint32_t g_voice_hist[6];
 extern volatile uint32_t g_echo_ducked;     // mic frames attenuated as the assistant's own echo
 extern volatile int g_battery_soc;
 extern volatile bool g_debug;   // console `debug on`: per-session stats and transcripts in the log   // -1 when unavailable; refreshed by the session task
@@ -126,7 +121,6 @@ bool app_audio_recently_playing(void);           // assistant audible within 3 s
 int64_t app_audio_ms_since_speech(void);         // since the assistant was last audible (INT64_MAX: never)
 void app_audio_set_volume(int volume);           // 0..150: codec volume + digital gain
 esp_err_t app_live_start(void);                  // session controller task
-bool app_live_busy(void);                        // a session is connecting or live
 bool app_auto_start_enabled(void);               // start a conversation right after boot
 esp_err_t app_ui_start(void);                    // builds the screen + UI timer
 

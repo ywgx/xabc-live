@@ -88,7 +88,8 @@ static char s_uri_host[LIVE_CFG_HOST_MAX + 1];
 static int s_uri_port;
 static char s_auth[LIVE_CFG_KEY_MAX + 32];   // "Authorization: Bearer <key>\r\n", wiped after use
 static volatile bool s_streaming;
-static volatile bool s_session_busy;   // connecting or live: no other TLS work (RAM)
+static int64_t s_last_good_ms;               // end of the last healthy session (skips the self-check)
+#define RECENT_GOOD_MS (5 * 60 * 1000)
 static volatile int64_t s_last_activity_ms;
 
 // Diagnostics, printed every 2 s while a session runs (no payloads, no secrets).
@@ -395,6 +396,8 @@ static bool ws_connect(void)
     };
     s_tls = esp_tls_init();
     if (!s_tls) return false;
+    // No TLS session resumption: with mbedTLS dynamic buffers (required for RAM) the
+    // abbreviated handshake corrupted memory on the device (tested 2026-11-24).
     if (esp_tls_conn_new_sync(s_uri_host, (int)strlen(s_uri_host), s_uri_port, &cfg, s_tls) != 1) {
         snprintf(s_error, sizeof(s_error), "TLS 连接失败");
         return false;
@@ -626,8 +629,8 @@ static bool send_text(const char *msg, size_t n)
 
 static void teardown(void)
 {
+    s_last_good_ms = 0;   // only a normal stop (below) marks the link as known good
     esp_wifi_set_ps(WIFI_PS_MIN_MODEM);   // back to power saving between conversations
-    s_session_busy = false;
     s_streaming = false;
     app_audio_set_uplink(NULL);
     app_audio_enable(false);
@@ -680,11 +683,6 @@ static void randomize_local_port(void)
     ESP_LOGI(TAG, "skipped %d ephemeral ports", skips);
 }
 
-bool app_live_busy(void)
-{
-    return s_session_busy;
-}
-
 static bool start_session_inner(void);
 
 // OK presses made while a connection attempt is running would otherwise queue up and
@@ -703,9 +701,7 @@ static void drop_queued_toggles(void)
 
 static bool start_session(void)
 {
-    s_session_busy = true;
     bool ok = start_session_inner();
-    s_session_busy = ok;   // stays busy while live; teardown clears it
     drop_queued_toggles();
     return ok;
 }
@@ -724,10 +720,16 @@ static bool start_session_inner(void)
         return false;
     }
     randomize_local_port();
-    app_set_state(APP_ST_CONNECTING, "正在检查网络…");
-    if (!app_net_ensure(3)) {
-        app_set_state(APP_ST_ERROR, "网络不通，按 OK 重试");
-        return false;
+    // The TCP self-check guards against APs that keep a broken station state. Right
+    // after a healthy session the link is known good, so skip it (a failed connect
+    // below still re-checks and re-associates before retrying).
+    const bool recently_good = s_last_good_ms && app_now_ms() - s_last_good_ms < RECENT_GOOD_MS;
+    if (!recently_good) {
+        app_set_state(APP_ST_CONNECTING, "正在检查网络…");
+        if (!app_net_ensure(3)) {
+            app_set_state(APP_ST_ERROR, "网络不通，按 OK 重试");
+            return false;
+        }
     }
     app_set_state(APP_ST_CONNECTING, "正在连接 ChatGPT…");
 
@@ -857,7 +859,9 @@ static void stop_session(const char *status)
         // Wait for session.closed so the server reports final usage.
         xEventGroupWaitBits(s_ev, EV_CLOSED | EV_DISCONNECTED, pdFALSE, pdFALSE, pdMS_TO_TICKS(4000));
     }
+    const bool healthy = s_st.rx_msgs > 20;   // streamed for a while before a normal stop
     teardown();
+    if (healthy) s_last_good_ms = app_now_ms();
     app_set_state(APP_ST_IDLE, status);
 }
 
@@ -978,27 +982,13 @@ static void live_task(void *arg)
             ESP_LOGI(TAG, "net rd=%u bytes=%u want=%u loops=%u in=%u", (unsigned)s_st.rd_calls,
                      (unsigned)s_st.rd_bytes, (unsigned)s_st.rd_want, (unsigned)s_st.loops, (unsigned)s_in_len);
             ESP_LOGI(TAG, "stats rx_ev=%u msgs=%u ovf=%u audio=%u/%uB bad=%u in_tx=%u out_tx=%u "
-                     "other=%u up=%u fail=%u drop=%u mic=%d spk=%d underrun=%u spk_drop=%u skip=%u heap=%u",
+                     "other=%u up=%u fail=%u drop=%u mic=%d spk=%d underrun=%u spk_drop=%u skip=%u heap=%u echo_duck=%u",
                      (unsigned)s_st.rx_events, (unsigned)s_st.rx_msgs, (unsigned)s_st.rx_overflow,
                      (unsigned)s_st.audio_deltas, (unsigned)s_st.audio_bytes, (unsigned)s_st.audio_bad,
                      (unsigned)s_st.in_tx, (unsigned)s_st.out_tx, (unsigned)s_st.other,
                      (unsigned)s_st.up_chunks, (unsigned)s_st.up_fail, (unsigned)s_st.up_drop,
                      g_mic_level, g_spk_level, (unsigned)g_play_underruns, (unsigned)g_play_dropped, (unsigned)g_play_skipped,
-                     (unsigned)esp_get_free_heap_size());
-        }
-        if (g_debug && st == APP_ST_LIVE && g_echo_spk_avg) {
-            static int64_t s_echo_log;
-            if (app_now_ms() - s_echo_log > 2000) {
-                s_echo_log = app_now_ms();
-                ESP_LOGI(TAG, "echo ducked=%u frames", (unsigned)g_echo_ducked);
-                ESP_LOGI(TAG, "echo spk=%u ratio<.02:%u <.05:%u <.1:%u <.2:%u <.4:%u <.8:%u <1.6:%u >=1.6:%u",
-                         (unsigned)g_echo_spk_avg, (unsigned)g_echo_hist[0], (unsigned)g_echo_hist[1],
-                         (unsigned)g_echo_hist[2], (unsigned)g_echo_hist[3], (unsigned)g_echo_hist[4],
-                         (unsigned)g_echo_hist[5], (unsigned)g_echo_hist[6], (unsigned)g_echo_hist[7]);
-                ESP_LOGI(TAG, "voice(mic, ai silent) <100:%u <300:%u <1k:%u <3k:%u <8k:%u >=8k:%u",
-                         (unsigned)g_voice_hist[0], (unsigned)g_voice_hist[1], (unsigned)g_voice_hist[2],
-                         (unsigned)g_voice_hist[3], (unsigned)g_voice_hist[4], (unsigned)g_voice_hist[5]);
-            }
+                     (unsigned)esp_get_free_heap_size(), (unsigned)g_echo_ducked);
         }
         if (st == APP_ST_LIVE) {
             EventBits_t b = xEventGroupGetBits(s_ev);
