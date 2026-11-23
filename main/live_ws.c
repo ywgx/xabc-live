@@ -63,7 +63,7 @@ size_t live_ws_handshake_request(char *out, size_t out_cap, const char *host, co
                      "Connection: Upgrade\r\n"
                      "Sec-WebSocket-Key: %s\r\n"
                      "Sec-WebSocket-Version: 13\r\n"
-                     "User-Agent: XABC-Live/1\r\n"
+                     "User-Agent: ChatGPT-Passport/1\r\n"
                      "%s"
                      "\r\n",
                      path, host, key_b64, extra_headers ? extra_headers : "");

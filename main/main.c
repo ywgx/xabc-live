@@ -1,4 +1,4 @@
-// main/main.c -- FoloToy AI Passport · XABC Live voice companion.
+// main/main.c -- FoloToy AI Passport · ChatGPT voice companion.
 //
 // Talks to gpt-live-1 through the OpenAI Live API offered by XSI Router
 // (wss://api.xsirouter.com/v1/live/sessions). Wi-Fi and the API key are
@@ -53,7 +53,7 @@ static void on_key(bsp_btn_t btn, bsp_btn_ev_t ev, void *user)
 
 void app_main(void)
 {
-    ESP_LOGI(TAG, "AI Passport · XABC Live 启动");
+    ESP_LOGI(TAG, "AI Passport · ChatGPT 启动");
     if (esp_sleep_get_wakeup_causes() & (1u << ESP_SLEEP_WAKEUP_GPIO)) {
         key_guard_arm(&s_key_guard, esp_timer_get_time(), KEY_GUARD_MAX_US);
     }

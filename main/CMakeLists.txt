@@ -1,4 +1,4 @@
-# XABC Live voice companion. The baseline demo_*.c hardware-test pages remain in
+# ChatGPT voice companion. The baseline demo_*.c hardware-test pages remain in
 # this directory for their host tests but are not part of this application.
 idf_component_register(
     SRCS "main.c"

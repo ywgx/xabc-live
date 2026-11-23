@@ -1,6 +1,6 @@
 // main/app_portal.c -- first-time setup from a phone, no computer or app needed.
 //
-// The device opens an open hotspot "XABC-Live-XXXX" and shows its Wi-Fi QR code on the
+// The device opens an open hotspot "ChatGPT-XXXX" and shows its Wi-Fi QR code on the
 // screen. Phones that join get the setup page automatically (captive portal: every DNS
 // name resolves to the device, every unknown URL redirects to it). Step 1 picks a
 // Wi-Fi network from a scan and takes its password, step 2 takes the XSI Router API key
@@ -52,7 +52,7 @@ const char *app_portal_ssid(void)
 
 static const char PAGE_HEAD[] =
     "<!doctype html><html lang=zh><meta charset=utf-8>"
-    "<meta name=viewport content='width=device-width,initial-scale=1'><title>XABC Live 设置</title>"
+    "<meta name=viewport content='width=device-width,initial-scale=1'><title>ChatGPT 设置</title>"
     "<style>body{font-family:-apple-system,system-ui,sans-serif;max-width:420px;margin:24px auto;"
     "padding:0 16px;background:#0b0f14;color:#e6edf3}h1{font-size:22px;margin-bottom:4px}"
     "label{display:block;margin:16px 0 6px;color:#9aa4ae}"
@@ -60,7 +60,7 @@ static const char PAGE_HEAD[] =
     "background:#161b22;color:#e6edf3;font-size:16px}"
     "button{margin-top:22px;width:100%;padding:14px;border:0;border-radius:10px;background:#22c55e;"
     "color:#04120a;font-size:17px;font-weight:600}.hint{color:#9aa4ae;font-size:13px}#s2{display:none}"
-    "</style><h1>XABC Live 设置</h1>";
+    "</style><h1>ChatGPT 设置</h1>";
 
 static const char PAGE_FORM_1[] =
     "<form method=post action=/save><div id=s1>"
@@ -286,7 +286,7 @@ esp_err_t app_portal_start(const char *error)
 
     uint8_t mac[6] = { 0 };
     esp_read_mac(mac, ESP_MAC_WIFI_SOFTAP);
-    snprintf(s_ssid, sizeof(s_ssid), "XABC-Live-%02X%02X", mac[4], mac[5]);
+    snprintf(s_ssid, sizeof(s_ssid), "ChatGPT-%02X%02X", mac[4], mac[5]);
     static bool s_netif_done;
     if (!s_netif_done) {
         esp_netif_create_default_wifi_ap();

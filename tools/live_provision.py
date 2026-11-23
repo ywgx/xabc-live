@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Provision Wi-Fi and the XSI Router API key into an AI Passport running XABC Live.
+"""Provision Wi-Fi and the XSI Router API key into an AI Passport running ChatGPT.
 
 The device exposes a console on its native USB Serial/JTAG port. This script
 sends `wifi`, `key`, and optional `host`/`voice`/`prompt` commands and waits for
@@ -81,7 +81,7 @@ class Console:
             for line in self._lines(time.monotonic() + 2.0):
                 if "OK config" in line:
                     return
-        sys.exit("The device console did not answer. Is the XABC Live firmware running?")
+        sys.exit("The device console did not answer. Is the ChatGPT firmware running?")
 
     def run(self, name: str, line: str, secret: bool = False, timeout: float = 6.0) -> list[str]:
         self.buffer = b""

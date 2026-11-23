@@ -1,156 +1,186 @@
-# AI Passport · XABC Live 语音伙伴
+<p align="right">
+  <a href="README.zh_CN.md">简体中文</a> · <strong>English</strong>
+</p>
 
-本项目基于 [FoloToy AI Passport](https://github.com/folotoy/ai-passport) 开源固件，把它变成一个随身的实时语音助手。设备通过 Wi-Fi 直接连接
-[XSI Router](https://xsirouter.com/blog/gpt-live-1-openai-live-api/) 提供的 OpenAI 官方 Live API，使用全双工语音模型
-`gpt-live-1`：开机联网后自动进入对话，全双工——它说话时你可以直接开口插话；五分钟没有对话自动结束。对话中屏幕只有
-状态圆球和一行状态。
+# AI Passport · ChatGPT Voice Companion
 
-## 怎么用
+Based on the open-source [FoloToy AI Passport](https://github.com/folotoy/ai-passport) firmware, this project turns the
+device into a pocket real-time voice assistant. It connects over Wi-Fi straight to the official OpenAI Live API offered
+by [XSI Router](https://xsirouter.com/blog/gpt-live-1-openai-live-api/) and uses the full-duplex voice model
+`gpt-live-1`: after power-on it joins the network and starts a conversation by itself; it is full duplex, so you can
+talk over it while it speaks; five minutes without talking ends the conversation. During a conversation the screen shows
+only the state orb and one status line.
 
-| 按键 | 作用 |
+## Using it
+
+| Button | Action |
 | --- | --- |
-| OK 短按 | 空闲时开始对话；助手说话时立即打断它（也可以直接开口插话）；出错后重试 |
-| OK 长按 | 结束对话 |
-| ▲ 长按 | 进入手机扫码设置（换 Wi-Fi / Key） |
-| ▲ / ▼ 短按 | 音量加 / 减 10%（默认 150% 最大；0–100% 为芯片音量，110–150% 再叠加 1.4–3 倍数字增益，带软限幅不破音） |
+| OK short press | Start a conversation when idle; interrupt the assistant at once while it talks (or just start speaking); retry after an error |
+| OK long press | End the conversation |
+| ▲ long press | Open phone setup (change Wi-Fi / key) |
+| ▲ / ▼ short press | Volume up / down by 10% (default 150%, the maximum; 0–100% is the codec volume, 110–150% adds 1.4–3x digital gain with a soft limiter, so it does not distort) |
 
-屏幕中央的圆球表示状态：
+The orb in the middle of the screen shows the state:
 
-| 颜色 | 状态 |
+| Colour | State |
 | --- | --- |
-| 绿色 | 已就绪，按 OK 开始（与左上角 Wi-Fi 绿点同色；对话中顶部标题、Wi-Fi 点和电量隐藏） |
-| 浅绿色（呼吸） | 正在连接 Wi-Fi、检查网络或连接 XABC Live |
-| 绿色（随你的声音变大） | 正在听你说话 |
-| 紫色（随回答的声音变大） | 助手正在回答 |
-| 红色 | 出错，状态行显示原因，按 OK 重试 |
-| 二维码 | 设置模式：手机扫码连接热点后填写 Wi-Fi 和 API Key |
+| Green | Ready, press OK to start (same green as the Wi-Fi dot; the title, Wi-Fi dot and battery are hidden during a conversation) |
+| Light green (breathing) | Joining Wi-Fi, checking the network or connecting to ChatGPT |
+| Green (grows with your voice) | Listening to you |
+| Purple (grows with the reply) | The assistant is answering |
+| Red | Error, the status line shows why; press OK to retry |
+| QR code | Setup mode: scan it with a phone to join the hotspot, then enter Wi-Fi and the API key |
 
-说“拜拜”“再见”“关闭吧”之类的简短告别，助手说完再见后对话自动结束（只认 12 个字以内的整句，避免“怎么关闭
-电脑更新”这类问题误关；告别后你又接着说话则不结束）。
+Say a short goodbye such as "拜拜", "再见" or "关闭吧" ("bye", "goodbye", "turn off") and the conversation ends once the
+assistant has said goodbye. Only a whole utterance of at most 12 characters counts, so a question like "how do I turn off
+updates on my computer" does not end it, and talking on after the goodbye keeps the conversation going.
 
-**自动关机**：对话结束后（或连不上网时）10 分钟没有对话、也没按键，屏幕提示“10 分钟未使用，已自动关机”后进入
-深度睡眠（Wi-Fi 先正常断开）；按任意键开机，开机后直接进入对话。连着电脑（USB 有主机）时不会自动关机，方便
-调试和烧录；只接充电器照常关机。
+**Automatic power off**: after a conversation ends (or while offline), 10 minutes without talking or a button press shows
+"10 分钟未使用，已自动关机" (unused for 10 minutes, powered off) and the device enters deep sleep (Wi-Fi disconnects
+cleanly first). Press any button to switch it on; it goes straight into a conversation. It never powers off while a
+computer is attached over USB (debugging and flashing); on a plain charger it powers off as usual.
 
-计费提示：`gpt-live-1` 按会话时长计费，静音也算时间。五分钟没有任何对话会自动结束，单次会话最长 30 分钟；
-开机自动开始对话可用 `autostart off` 关闭。
+Billing: `gpt-live-1` is billed by session time, silence included. Five minutes without any talking end the session, and
+one session lasts at most 30 minutes. Turn off the automatic conversation at power-on with `autostart off`.
 
-## 第一次配置（手机扫码，约 1 分钟）
+## First-time setup (scan with a phone, about a minute)
 
-1. 设备第一次开机（还没配置）时，屏幕显示二维码和“扫码连接 XABC-Live-XXXX”。
-2. 用手机相机扫码，连上设备热点，设置页会自动弹出（没弹出就在浏览器打开任意网址或 `192.168.4.1`）。
-3. 第 1 步：从附近网络里选 Wi-Fi（只支持 2.4 GHz），输入密码（明文显示）。
-4. 第 2 步：粘贴 [XSI Router](https://xsirouter.com) 的 API Key，点“保存并重启”。
-5. 设备先验证这个 Wi-Fi 能连上才正式保存，然后自动进入对话；连不上会重新显示二维码并在页面上说明原因，
-   原来的配置不受影响。
+1. On first power-on (not configured yet) the screen shows a QR code and "扫码连接 ChatGPT-XXXX" (scan to join ChatGPT-XXXX).
+2. Scan it with the phone camera to join the device hotspot; the setup page opens by itself (if not, open any web address
+   or `192.168.4.1` in a browser).
+3. Step 1: pick a nearby Wi-Fi network (2.4 GHz only) and enter its password (shown in plain text).
+4. Step 2: paste your [XSI Router](https://xsirouter.com) API key and tap "保存并重启" (Save and restart).
+5. The device first checks that it can actually join that Wi-Fi before saving it, then starts a conversation. If it
+   cannot connect, the QR code returns and the page explains why; the previous settings are kept.
 
-以后要换 Wi-Fi 或 Key：**长按 ▲** 重新进入设置（已有 Key 可留空保持不变）；设置时按 OK 退出。
-中文输入法打出的全角标点会自动转成半角，首尾空格会自动去掉。API 地址固定为 `api.xsirouter.com`。
+To change Wi-Fi or the key later: **long-press ▲** to open setup again (leave the key empty to keep it); press OK to
+leave setup. Full-width punctuation typed with a Chinese keyboard is converted to half-width and leading/trailing
+spaces are removed automatically. The API host is fixed to `api.xsirouter.com`.
 
-开发者也可以用 USB 串口配置（Key 不会显示或写入文件）：
+Developers can also configure the device over USB serial (the key is never shown or written to a file):
 
 ```bash
-. ~/esp/esp-idf-v5.5.3/export.sh          # 提供 pyserial
-python3 tools/live_provision.py --ssid 你的WiFi名称
+. ~/esp/esp-idf-v5.5.3/export.sh          # provides pyserial
+python3 tools/live_provision.py --ssid YourWiFiName
 ```
 
-其他选项：`--host`、`--voice`（默认 `marin`）、`--prompt "助手指令"`、`--show`（查看当前配置，Key 打码）。
-从 `0x0` 烧录合并固件 `full.bin` 会清空配置；只更新程序时把 `build/firmware/<hash>/FoloToy-AI-Passport.bin`
-写到 `0x10000`，配置会保留。
+Other options: `--host`, `--voice` (default `marin`), `--prompt "assistant instructions"`, `--show` (current settings,
+key masked). Flashing the merged `full.bin` at `0x0` erases the settings; to update only the program, write
+`build/firmware/<hash>/FoloToy-AI-Passport.bin` to `0x10000` and the settings are kept.
 
-## 工作原理
+## How it works
 
 ```text
-麦克风 ──► μ-law ──► 上行发送任务 ──► session.input_audio.append ──────────────┐
+mic ──► μ-law ──► uplink task ──► session.input_audio.append ──────────────────┐
                                                                               ▼
-                                   wss://api.xsirouter.com/v1/live/sessions（gpt-live-1）
+                                   wss://api.xsirouter.com/v1/live/sessions (gpt-live-1)
                                                                               │
-喇叭 ◄── 抖动缓冲（自动追延迟）◄── Base64 解码 ◄── session.output_audio.delta ◄───┤
-屏幕状态 ◄──────────────────── session.input/output_transcript.delta ◄────────┘
+speaker ◄── jitter buffer (catches up) ◄── Base64 decode ◄── session.output_audio.delta ◄─┤
+status line ◄──────────────────── session.input/output_transcript.delta ◄──────┘
 ```
 
-- **音频格式**：双向 8 kHz G.711 μ-law（`audio/pcmu`），每个方向约 11 KB/s，在弱网下也稳定。gpt-live-1 不支持
-  上下行使用不同格式；16 kHz PCM 在这块没有 PSRAM 的芯片上内存不够，已移除。
-- **网络层**：自带精简 WebSocket 客户端（`live_ws.c`），一个网络任务独占 TLS 连接、统一收发，不再使用
-  `esp_websocket_client`（它收帧时持锁，链路一抖就饿死上行）。只在整条 TLS 记录到齐时才读（mbedTLS 动态缓冲
-  不能处理半条记录），开启 `TCP_NODELAY`。
-- **上行节奏**：gpt-live-1 按输入音频的时间节奏输出，所以上行必须严格实时。麦克风任务只负责采样入队、从不阻塞。
-- **TCP 调优**：到美东的跨洋链路白天有丢包，lwIP 默认不发 SACK，丢包后服务端拥塞窗口塌缩、下行只剩 2–5 条/秒。
-  已开启 `CONFIG_LWIP_TCP_SACK_OUT`、乱序缓存 8 包、TCP 定时器 50 ms。
-- **下行缓冲**：先缓冲 600 ms 再播；网络抖动积压超过 1.2 s 时跳过静音帧追回实时，不剪掉正在说的话。
-- **全双工**：板上没有回声消除，麦克风一直上传原声，由模型自己区分你的插话和它自己的回声（指令里提示了这一点），
-  直接开口就能打断它。按 OK 只在本地立即清空播放、短暂丢弃路上的下行音频，方便你开口，不给模型发任何指令。
-- **多个 Wi-Fi**：最多保存 4 个网络，开机和断线后扫描，连信号最强的可用网络，失败自动换下一个（例如家里的
-  Wi-Fi，不在家时用手机热点）。
-- **网络自愈**：联网后和每次开会话前，先对 API 服务器做一次 TCP 自检；不通时干净地断开并重新关联 Wi-Fi 再试。
-  会话中 6 秒收不到任何下行数据即判定断线，屏幕提示重连，不会静默卡住。
-- **不联网查询**：设备不提供任何查询工具，指令要求模型直接用已有知识回答。gpt-live-1 的委派无法关闭，万一模型
-  仍发出 `session.delegation.created`，设备立即回一句“这里没有联网查询，请直接回答”，避免它一直等待。
-- **字库**：16 px 中文字库只包含界面状态文字实际用到的字（由 `tools/gen_live_font.py` 从源码提取，约 340 个
-  字形）。服务端报错原文可能含字库外的字，会显示为占位框。
+- **Audio format**: 8 kHz G.711 μ-law (`audio/pcmu`) both ways, about 11 KB/s per direction and robust on weak links.
+  gpt-live-1 does not allow different formats per direction; 16 kHz PCM does not fit the RAM of this PSRAM-less chip and
+  was removed.
+- **Network layer**: an own minimal WebSocket client (`live_ws.c`); one network task owns the TLS connection and does all
+  sending and receiving, instead of `esp_websocket_client` (which holds a lock while receiving and starves the uplink when
+  the link jitters). It reads only once a whole TLS record has arrived (mbedTLS dynamic buffers cannot handle half
+  records) and enables `TCP_NODELAY`.
+- **Uplink pacing**: gpt-live-1 paces its output by the input audio clock, so the uplink must stay strictly real-time.
+  The microphone task only samples and queues; it never blocks.
+- **TCP tuning**: the transoceanic path to US-East loses packets in the daytime. Without SACK (lwIP's default) the
+  server's congestion window collapses and the downlink drops to 2–5 messages/s. `CONFIG_LWIP_TCP_SACK_OUT`, an 8-packet
+  out-of-order queue and a 50 ms TCP timer are enabled.
+- **Downlink buffer**: 600 ms of audio is buffered before playback; when jitter backs up more than 1.2 s, silent frames
+  are skipped to catch up without cutting speech.
+- **Full duplex**: the board has no acoustic echo cancellation. The microphone always streams and the model itself tells
+  your interruptions from its own echo (the instructions mention it), so you can cut in just by talking. OK only clears
+  local playback and briefly drops in-flight downlink audio so you can speak; no instruction is sent to the model.
+- **Several Wi-Fi networks**: up to 4 saved networks; after power-on and after a disconnect it scans, joins the strongest
+  usable one and moves on to the next on failure (for example home Wi-Fi, and a phone hotspot when away).
+- **Network self-healing**: after joining and before each session, a TCP check against the API server runs; if it fails,
+  the device disconnects cleanly and re-associates. During a session, 6 s without any downlink data counts as a dropped
+  connection and the screen asks to reconnect instead of hanging silently.
+- **No online lookups**: the device offers no lookup tools and the instructions ask the model to answer from its own
+  knowledge. gpt-live-1 delegation cannot be switched off; if the model still sends `session.delegation.created`, the
+  device replies at once "no online lookup here, please answer directly" so it does not wait forever.
+- **Font**: the 16 px Chinese font contains only the characters the UI status text actually uses (extracted from the
+  source by `tools/gen_live_font.py`, about 400 glyphs). Server error messages may contain other characters, which show as
+  placeholder boxes.
 
-## USB 控制台命令
+## USB console commands
 
-设备的 USB 串口（`passport>`）支持以下命令，`tools/live_provision.py` 和 `tools/live_autotest.py` 都通过它工作：
+The device's USB serial console (`passport>`) supports these commands; `tools/live_provision.py` and
+`tools/live_autotest.py` both work through it:
 
-| 命令 | 作用 |
+| Command | Action |
 | --- | --- |
-| `wifi <ssid> [密码]`、`wifi_list`、`wifi_del <ssid>` | 添加/更新、列出、删除已保存的 Wi-Fi（最多 4 个，自动连信号最强的可用网络） |
-| `key <api-key>`、`host`、`voice`、`prompt "<指令>"` | 写入配置（NVS） |
-| `config`、`clear`、`restart`、`poweroff`、`setup` | 查看配置（Key 打码）、清空配置、重启、立即关机、进入扫码设置 |
-| `debug on\|off` | 在日志里打印会话统计和双方转写（默认关，不保存） |
-| `talk`、`hangup` | 等同 OK 短按、OK 长按 |
-| `autostart on\|off` | 开机后是否自动进入对话（默认开） |
-| `nettest` | Wi-Fi 信号、DNS 和到 API 服务器 / 百度的 TCP 建连耗时 |
-| `testmic on\|off`、`testplay <url>`、`volume <0..150>` | 自动化测试用：用局域网下载的音频代替麦克风、临时音量 |
+| `wifi <ssid> [password]`, `wifi_list`, `wifi_del <ssid>` | Add/update, list, delete saved Wi-Fi (up to 4; the strongest usable one is joined) |
+| `key <api-key>`, `host`, `voice`, `prompt "<instructions>"` | Write settings (NVS) |
+| `config`, `clear`, `restart`, `poweroff`, `setup` | Show settings (key masked), erase settings, restart, power off now, open phone setup |
+| `debug on\|off` | Print session statistics and both transcripts to the log (off by default, not saved) |
+| `talk`, `hangup` | Same as OK short press, OK long press |
+| `autostart on\|off` | Start a conversation after power-on (on by default) |
+| `nettest` | Wi-Fi signal, DNS and TCP connect time to the API server / Baidu |
+| `testmic on\|off`, `testplay <url>`, `volume <0..150>` | Automated testing: replace the microphone with audio downloaded over the LAN, temporary volume |
 
-注意：打开 USB 串口会让芯片复位。
+Note: opening the USB serial port resets the chip.
 
-## 自动化测试
+## Automated test
 
 ```bash
 . ~/esp/esp-idf-v5.5.3/export.sh
 python3 tools/live_autotest.py --rounds 3 --nettest
 ```
 
-脚本全程只开一次串口，等设备联网后逐轮执行：`talk` → 用 macOS `say` 合成问题，经本机临时 HTTP 服务让设备下载并代替
-麦克风实时上传（默认静音测试，设备音量临时为 0）→ 收集双方转写和每 2 秒的统计 → `hangup`，最后给出每轮的
-PASS/FAIL：是否识别到语音、是否有回答、上下行速率、卡顿次数、最低内存、错误日志。`--speaker` 改为用电脑喇叭真实播放；`--barge` 在助手讲长故事时插入新问题（默认按 OK，加
-`--voice-barge` 只靠开口）；`--followup 再讲一个` 在同一会话里追问（加 `--expect-close` 检查说拜拜后自动结束）。
+The script opens the serial port once, waits for the device to come online and then runs each round: `talk` → a
+question synthesized with macOS `say`, which the device downloads from a temporary local HTTP server and streams in real
+time in place of the microphone (silent by default, device volume temporarily 0) → collect both transcripts and the
+2-second statistics → `hangup`. Each round gets PASS/FAIL for: speech recognised, answer received, uplink/downlink rate,
+underruns, lowest free heap and error logs. `--speaker` plays the question through the computer speaker instead;
+`--barge` cuts in with a new question while the assistant tells a long story (OK by default, `--voice-barge` by voice
+only); `--followup "one more"` asks a follow-up in the same session (add `--expect-close` to check that saying goodbye
+ends it).
 
-## 代码结构
+## Code layout
 
-| 路径 | 内容 |
+| Path | Contents |
 | --- | --- |
-| `main/main.c` | 启动顺序与按键映射 |
-| `main/app_live.c` | 会话状态机、网络任务（TLS + WebSocket）、协议事件、断线检测、自动开始/结束 |
-| `main/app_audio.c` | 麦克风 / 播放两个音频任务、μ-law 缓冲、延迟追赶、OK 打断时的播放清空、测试麦克风 |
-| `main/app_ui.c` | 极简界面（状态圆球、一行状态；空闲时显示标题、Wi-Fi 点、电量） |
-| `main/app_wifi.c` | Wi-Fi、TCP 自检与干净重连 |
-| `main/app_config.c`、`main/app_console.c`、`main/app_testplay.c` | NVS 配置、USB 控制台命令、测试音频下载 |
-| `main/live_proto.c`、`main/live_ws.c`、`main/live_g711.c`、`main/live_policy.c`、`main/live_config.c` | 不依赖 ESP-IDF 的纯逻辑，有主机测试 |
-| `tests/test_live_*.c` | 协议解析、Base64、G.711、委派事件、打断窗口、延迟追赶、音量、告别识别、配置的测试 |
-| `tools/live_provision.py`、`tools/live_autotest.py` | USB 配置脚本、端到端自动化测试 |
-| `tools/gen_live_font.py`、`assets/fonts/` | 中文字库的生成脚本、字库与许可 |
+| `main/main.c` | Start-up order and button mapping |
+| `main/app_live.c` | Session state machine, network task (TLS + WebSocket), protocol events, drop detection, auto start/end |
+| `main/app_audio.c` | Microphone and playback tasks, μ-law buffers, latency catch-up, clearing playback on OK, test microphone |
+| `main/app_ui.c` | Minimal UI (state orb, one status line; title, Wi-Fi dot and battery while idle; setup QR code) |
+| `main/app_wifi.c` | Wi-Fi, TCP check and clean re-association |
+| `main/app_portal.c` | Phone setup: hotspot, captive DNS and the setup page |
+| `main/app_power.c`, `main/app_diag.c` | Automatic power off (deep sleep), watchdog diagnostics |
+| `main/app_config.c`, `main/app_console.c`, `main/app_testplay.c` | NVS settings, USB console commands, test audio download |
+| `main/live_proto.c`, `main/live_ws.c`, `main/live_g711.c`, `main/live_policy.c`, `main/live_config.c`, `main/live_form.c` | Pure logic without ESP-IDF, covered by host tests |
+| `tests/test_live_*.c` | Tests for protocol parsing, Base64, G.711, delegation events, the interrupt window, latency catch-up, volume, goodbye detection, settings and the setup page helpers |
+| `tools/live_provision.py`, `tools/live_autotest.py` | USB provisioning script, end-to-end automated test |
+| `tools/gen_live_font.py`, `assets/fonts/` | Chinese font generator, font and licence |
 
-`main/demo_*.c` 是基线的硬件测试页，保留给它们的主机测试使用，不编进这个应用。
+`main/demo_*.c` are the baseline hardware test pages, kept for their host tests and not built into this application.
 
-## 构建与验证
+## Build and validate
 
 ```bash
 . ~/esp/esp-idf-v5.5.3/export.sh
-./tools/validate.sh            # 主机测试 + 固件构建 + 合并镜像校验
+./tools/validate.sh            # host tests + firmware build + merged image check
 ```
 
-产物：`build/FoloToy-AI-Passport-full.bin`，从 `0x0` 烧录。开发说明见 [`AGENTS.md`](AGENTS.md) 与
-[文档索引](docs/README.md)。
+Output: `build/FoloToy-AI-Passport-full.bin`, flashed at `0x0`. Development notes are in [`AGENTS.md`](AGENTS.md) and the
+[documentation index](docs/README.md).
 
-## 已知限制与网络注意事项
+## Known limitations and network notes
 
-- 没有声学回声消除：全双工依赖模型自己分辨回声，音量很大或环境安静时偶尔可能把回声当成插话；遇到时可调低音量。
-- API Key 存在设备 Flash 中，拿到设备的人可以读出；请只在自己的设备上使用，必要时在 XSI 控制台限制额度或轮换 Key。
-- 只实现了 XSI 的 OpenAI 官方 Live API（`/v1/live/sessions`）。Codex Live V3 只支持 WebRTC，需要额外的中转服务。
-- 实测部分 Wi-Fi 7 路由器在设备未正常断开（例如复位）后重新关联时，可能保留错误的客户端状态：DHCP/DNS 正常
-  但所有 TCP 都被丢弃。固件的 TCP 自检会自动干净地重连来恢复；建议给设备使用不在 MLO 组里的 2.4 GHz WPA2 SSID。
-- ESP-IDF 5.5.3 的 linenoise 在“dumb”终端模式下，输入行达到命令行上限时会越界写；不要向控制台发送超长行
-  （测试音频因此改走局域网 HTTP）。
+- No acoustic echo cancellation: full duplex relies on the model telling its own echo apart; at very high volume or in a
+  very quiet room it may occasionally take the echo for an interruption. Lower the volume if that happens.
+- The API key is stored in the device flash and can be read by whoever holds the device; use it only on your own device
+  and limit or rotate the key in the XSI console if needed.
+- Only XSI's official OpenAI Live API (`/v1/live/sessions`) is implemented. Codex Live V3 is WebRTC-only and would need
+  an extra relay service.
+- Some Wi-Fi 7 routers were seen to keep a broken client state after the device re-associates without a clean disconnect
+  (for example after a reset): DHCP/DNS work but all TCP is dropped. The firmware's TCP check recovers by reconnecting
+  cleanly; give the device a 2.4 GHz WPA2 SSID outside any MLO group.
+- In ESP-IDF 5.5.3, linenoise in "dumb" terminal mode writes out of bounds when an input line reaches the command-line
+  limit; never send overlong lines to the console (test audio therefore goes over LAN HTTP).

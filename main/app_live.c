@@ -729,7 +729,7 @@ static bool start_session_inner(void)
         app_set_state(APP_ST_ERROR, "网络不通，按 OK 重试");
         return false;
     }
-    app_set_state(APP_ST_CONNECTING, "正在连接 XABC Live…");
+    app_set_state(APP_ST_CONNECTING, "正在连接 ChatGPT…");
 
     // host[:port] for TLS; the Authorization header is built per attempt and wiped.
     strlcpy(s_uri_host, cfg.host, sizeof(s_uri_host));

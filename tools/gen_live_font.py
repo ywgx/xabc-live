@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate assets/fonts/live_cjk_16.c (XABC Live UI font) with lv_font_conv.
+"""Regenerate assets/fonts/live_cjk_16.c (ChatGPT UI font) with lv_font_conv.
 
 The UI shows only a short status line, so the font holds exactly the characters
 used by string literals in main/app_*.c and main/main.c, plus printable ASCII and

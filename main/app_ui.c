@@ -219,7 +219,7 @@ esp_err_t app_ui_start(void)
     s_title_dot = circle(s_scr, 8, COL_GRAY, LV_OPA_COVER);
     lv_obj_set_pos(s_title_dot, 30, 25);
     s_title = label(s_scr, &lv_font_montserrat_20, COL_TEXT);
-    lv_label_set_text(s_title, "XABC Live");
+    lv_label_set_text(s_title, "ChatGPT");
     lv_obj_set_pos(s_title, 44, 17);
     s_battery = label(s_scr, &lv_font_montserrat_14, COL_DIM);
     lv_obj_align(s_battery, LV_ALIGN_TOP_RIGHT, -26, 21);

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""End-to-end test of the XABC Live firmware on a connected AI Passport.
+"""End-to-end test of the ChatGPT firmware on a connected AI Passport.
 
 Holds one serial connection for the whole run (opening the USB Serial/JTAG port
 resets the chip), waits for Wi-Fi, optionally runs `nettest`, then for each round:
