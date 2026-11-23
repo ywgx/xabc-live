@@ -20,14 +20,15 @@ only the state orb and one status line.
 | ▲ long press | Open phone setup (change Wi-Fi / key) |
 | ▲ / ▼ short press | Volume up / down by 10% (default 150%, the maximum; 0–100% is the codec volume, 110–150% adds 1.4–3x digital gain with a soft limiter, so it does not distort) |
 
-The orb in the middle of the screen shows the state:
+The middle of the screen shows a sky-blue gradient sphere in the style of ChatGPT's voice mode, with soft light drifting
+inside it:
 
-| Colour | State |
+| Orb | State |
 | --- | --- |
-| Green | Ready, press OK to start (same green as the Wi-Fi dot; the title, Wi-Fi dot and battery are hidden during a conversation) |
-| Light green (breathing) | Joining Wi-Fi, checking the network or connecting to ChatGPT |
-| Green (grows with your voice) | Listening to you |
-| Purple (grows with the reply) | The assistant is answering |
+| Sky blue, gently breathing | Ready, press OK to start (the title, Wi-Fi dot and battery are hidden during a conversation) |
+| Grey-blue, breathing | Joining Wi-Fi, checking the network or connecting to ChatGPT |
+| Sky blue, swelling with your voice | Listening to you |
+| Sky blue, light moving faster and pulsing with the reply | The assistant is answering |
 | Red | Error, the status line shows why; press OK to retry |
 | QR code | Setup mode: scan it with a phone to join the hotspot, then enter Wi-Fi and the API key |
 
