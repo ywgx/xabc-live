@@ -79,9 +79,13 @@ static void wifi_mgr_task(void *arg)
             bool ok = false;
             for (int i = 0; i < 2 && !ok; i++) ok = try_join(&s_pending);   // one retry
             if (ok) {
-                app_config_set_wifi_first(s_pending.ssid, s_pending.pass);
-                ESP_LOGI(TAG, "新 Wi-Fi %s 验证成功，已保存", s_pending.ssid);
+                const esp_err_t err = app_config_set_wifi_first(s_pending.ssid, s_pending.pass);
+                if (err == ESP_OK) app_config_clear_pending_wifi();   // only once saved for good
+                ESP_LOGI(TAG, "新 Wi-Fi %s 验证成功，%s（栈余量 %u B）", s_pending.ssid,
+                         err == ESP_OK ? "已保存" : "保存失败，下次开机重试",
+                         (unsigned)uxTaskGetStackHighWaterMark(NULL));
             } else {
+                app_config_clear_pending_wifi();   // definitely wrong: drop it, keep the old list
                 const int r = s_last_reason;
                 snprintf(s_setup_error, sizeof(s_setup_error),
                          r == WIFI_REASON_NO_AP_FOUND ? "没找到 Wi-Fi「%s」（需 2.4 GHz）" : "连不上「%s」，密码可能不对",
@@ -93,7 +97,7 @@ static void wifi_mgr_task(void *arg)
             s_has_pending = false;
             if (!ok) continue;
         }
-        live_config_t cfg;
+        static live_config_t cfg;   // ~1.3 KB: static, this task only (keeps the stack small)
         app_config_get(&cfg);
         if (cfg.wifi_count == 0) continue;
 
@@ -184,8 +188,9 @@ esp_err_t app_wifi_start(void)
     ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, on_event, NULL, NULL));
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));   // credentials come from our NVS
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-    s_has_pending = app_config_take_pending_wifi(&s_pending);
-    if (xTaskCreate(wifi_mgr_task, "wifi_mgr", 4096, NULL, 4, &s_mgr) != pdPASS) return ESP_ERR_NO_MEM;
+    s_has_pending = app_config_get_pending_wifi(&s_pending);
+    // 6 KB: joining + NVS writes + logging measured ~4.3 KB at peak on the first save.
+    if (xTaskCreate(wifi_mgr_task, "wifi_mgr", 6144, NULL, 4, &s_mgr) != pdPASS) return ESP_ERR_NO_MEM;
     ESP_ERROR_CHECK(esp_wifi_start());
     // The device sits near its AP (RSSI around -30 dBm). Full 20 dBm TX bursts on battery
     // can pull the supply below the brownout threshold right after association (seen as

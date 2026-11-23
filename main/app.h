@@ -69,7 +69,8 @@ void app_config_get(live_config_t *out);         // copy of the current settings
 esp_err_t app_config_set_wifi(const char *ssid, const char *pass);   // add or update a saved network
 esp_err_t app_config_set_wifi_first(const char *ssid, const char *pass);   // ... and try it first
 esp_err_t app_config_set_pending_wifi(const char *ssid, const char *pass);  // setup page: verify first
-bool app_config_take_pending_wifi(live_wifi_net_t *out);                    // read + erase
+bool app_config_get_pending_wifi(live_wifi_net_t *out);                     // read (kept until cleared)
+void app_config_clear_pending_wifi(void);                                   // after commit / definite failure
 esp_err_t app_config_del_wifi(const char *ssid);
 esp_err_t app_config_set_key(const char *key);
 esp_err_t app_config_set_host(const char *host);

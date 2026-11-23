@@ -14,6 +14,7 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static const char *TAG = "app_config";
@@ -134,19 +135,28 @@ static esp_err_t save_wifi_list(const live_config_t *cfg)
 
 static esp_err_t update_wifi(bool add, const char *ssid, const char *pass, bool first)
 {
+    // live_config_t is ~1.3 KB: keep the working copy off the caller's stack (the Wi-Fi
+    // manager saves from a small task and once overflowed it).
+    live_config_t *next = malloc(sizeof(*next));
+    if (!next) return ESP_ERR_NO_MEM;
     xSemaphoreTake(s_lock, portMAX_DELAY);
-    live_config_t next = s_cfg;
+    *next = s_cfg;
     xSemaphoreGive(s_lock);
-    bool ok = add ? live_wifi_upsert(&next, ssid, pass) : live_wifi_remove(&next, ssid);
-    if (ok && add && first) live_wifi_prefer(&next, ssid);
-    if (!ok) return add ? ESP_ERR_INVALID_ARG : ESP_ERR_NOT_FOUND;
-    esp_err_t err = save_wifi_list(&next);
-    if (err == ESP_OK) {
-        xSemaphoreTake(s_lock, portMAX_DELAY);
-        memcpy(s_cfg.wifi, next.wifi, sizeof(s_cfg.wifi));
-        s_cfg.wifi_count = next.wifi_count;
-        xSemaphoreGive(s_lock);
+    esp_err_t err;
+    bool ok = add ? live_wifi_upsert(next, ssid, pass) : live_wifi_remove(next, ssid);
+    if (ok && add && first) live_wifi_prefer(next, ssid);
+    if (!ok) {
+        err = add ? ESP_ERR_INVALID_ARG : ESP_ERR_NOT_FOUND;
+    } else {
+        err = save_wifi_list(next);
+        if (err == ESP_OK) {
+            xSemaphoreTake(s_lock, portMAX_DELAY);
+            memcpy(s_cfg.wifi, next->wifi, sizeof(s_cfg.wifi));
+            s_cfg.wifi_count = next->wifi_count;
+            xSemaphoreGive(s_lock);
+        }
     }
+    free(next);
     return err;
 }
 
@@ -175,17 +185,26 @@ esp_err_t app_config_set_pending_wifi(const char *ssid, const char *pass)
     return err;
 }
 
-bool app_config_take_pending_wifi(live_wifi_net_t *out)
+bool app_config_get_pending_wifi(live_wifi_net_t *out)
 {
     nvs_handle_t h;
-    if (nvs_open(NS, NVS_READWRITE, &h) != ESP_OK) return false;
+    if (nvs_open(NS, NVS_READONLY, &h) != ESP_OK) return false;
     size_t a = sizeof(out->ssid), b = sizeof(out->pass);
     const bool ok = nvs_get_str(h, "pssid", out->ssid, &a) == ESP_OK && nvs_get_str(h, "ppass", out->pass, &b) == ESP_OK;
+    nvs_close(h);
+    return ok;
+}
+
+// Called only once the pending network is saved for good, or definitely failed: a crash
+// or power cut in between keeps it, and the next boot verifies it again.
+void app_config_clear_pending_wifi(void)
+{
+    nvs_handle_t h;
+    if (nvs_open(NS, NVS_READWRITE, &h) != ESP_OK) return;
     nvs_erase_key(h, "pssid");
     nvs_erase_key(h, "ppass");
     nvs_commit(h);
     nvs_close(h);
-    return ok;
 }
 
 esp_err_t app_config_del_wifi(const char *ssid)
