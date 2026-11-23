@@ -99,9 +99,12 @@ status line ◄──────────────────── sess
   out-of-order queue and a 50 ms TCP timer are enabled.
 - **Downlink buffer**: 600 ms of audio is buffered before playback; when jitter backs up more than 1.2 s, silent frames
   are skipped to catch up without cutting speech.
-- **Full duplex**: the board has no acoustic echo cancellation. The microphone always streams and the model itself tells
-  your interruptions from its own echo (the instructions mention it), so you can cut in just by talking. OK only clears
-  local playback and briefly drops in-flight downlink audio so you can speak; no instruction is sent to the model.
+- **Full duplex with echo suppression**: the board has no acoustic echo cancellation, and the microphone picks up the
+  speaker (measured at 0.1–0.8x the speaker level), so the model would hear itself and even ask whether something is
+  being played back. The device knows what it plays: while the assistant talks, microphone frames quieter than the
+  speaker's last 0.4 s are treated as echo and scaled to 1/10; two frames in a row louder than the speaker count as you
+  talking over it and open the microphone for 0.3 s. So to interrupt by voice, speak louder than the device; OK always
+  interrupts at once (it only clears local playback, no instruction goes to the model).
 - **Several Wi-Fi networks**: up to 4 saved networks; after power-on and after a disconnect it scans, joins the strongest
   usable one and moves on to the next on failure (for example home Wi-Fi, and a phone hotspot when away).
 - **Network self-healing**: after joining and before each session, a TCP check against the API server runs; if it fails,
@@ -179,8 +182,7 @@ Output: `build/FoloToy-AI-Passport-full.bin`, flashed at `0x0`. Development note
 
 ## Known limitations and network notes
 
-- No acoustic echo cancellation: full duplex relies on the model telling its own echo apart; at very high volume or in a
-  very quiet room it may occasionally take the echo for an interruption. Lower the volume if that happens.
+- No acoustic echo cancellation: echo suppression works on loudness, so talking softly while the assistant speaks is treated as echo; speak up, press OK, or lower the volume.
 - The API key is stored in the device flash and can be read by whoever holds the device; use it only on your own device
   and limit or rotate the key in the XAI Router console if needed.
 - Only XAI Router's official OpenAI Live API (`/v1/live/sessions`) is implemented. Codex Live V3 is WebRTC-only and would need

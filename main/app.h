@@ -57,6 +57,12 @@ extern volatile int g_spk_level;
 extern volatile uint32_t g_play_underruns;   // playback stalls (network jitter)
 extern volatile uint32_t g_play_dropped;     // downlink bytes dropped on a full buffer
 extern volatile uint32_t g_play_skipped;     // quiet frames skipped to cut accumulated delay
+// Echo measurement (debug only): mic/speaker loudness ratio while the assistant talks,
+// and mic loudness while it is silent.
+extern volatile uint32_t g_echo_hist[8];
+extern volatile uint32_t g_echo_spk_avg;
+extern volatile uint32_t g_voice_hist[6];
+extern volatile uint32_t g_echo_ducked;     // mic frames attenuated as the assistant's own echo
 extern volatile int g_battery_soc;
 extern volatile bool g_debug;   // console `debug on`: per-session stats and transcripts in the log   // -1 when unavailable; refreshed by the session task
 

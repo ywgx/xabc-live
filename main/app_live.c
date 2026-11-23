@@ -986,6 +986,20 @@ static void live_task(void *arg)
                      g_mic_level, g_spk_level, (unsigned)g_play_underruns, (unsigned)g_play_dropped, (unsigned)g_play_skipped,
                      (unsigned)esp_get_free_heap_size());
         }
+        if (g_debug && st == APP_ST_LIVE && g_echo_spk_avg) {
+            static int64_t s_echo_log;
+            if (app_now_ms() - s_echo_log > 2000) {
+                s_echo_log = app_now_ms();
+                ESP_LOGI(TAG, "echo ducked=%u frames", (unsigned)g_echo_ducked);
+                ESP_LOGI(TAG, "echo spk=%u ratio<.02:%u <.05:%u <.1:%u <.2:%u <.4:%u <.8:%u <1.6:%u >=1.6:%u",
+                         (unsigned)g_echo_spk_avg, (unsigned)g_echo_hist[0], (unsigned)g_echo_hist[1],
+                         (unsigned)g_echo_hist[2], (unsigned)g_echo_hist[3], (unsigned)g_echo_hist[4],
+                         (unsigned)g_echo_hist[5], (unsigned)g_echo_hist[6], (unsigned)g_echo_hist[7]);
+                ESP_LOGI(TAG, "voice(mic, ai silent) <100:%u <300:%u <1k:%u <3k:%u <8k:%u >=8k:%u",
+                         (unsigned)g_voice_hist[0], (unsigned)g_voice_hist[1], (unsigned)g_voice_hist[2],
+                         (unsigned)g_voice_hist[3], (unsigned)g_voice_hist[4], (unsigned)g_voice_hist[5]);
+            }
+        }
         if (st == APP_ST_LIVE) {
             EventBits_t b = xEventGroupGetBits(s_ev);
             if (b & (EV_DISCONNECTED | EV_CLOSED)) {

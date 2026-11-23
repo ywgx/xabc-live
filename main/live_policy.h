@@ -72,6 +72,41 @@ bool live_play_should_skip(int queued_ms, uint16_t frame_peak);
 // Largest absolute sample value (|INT16_MIN| saturates to 32767).
 uint16_t live_pcm_peak(const int16_t *samples, size_t count);
 
+// Mean absolute sample value (a cheap loudness measure).
+uint16_t live_pcm_mean_abs(const int16_t *samples, size_t count);
+
+// Recent playback loudness, for telling the assistant's own echo from the user's voice.
+// The play task pushes one value per 20 ms frame; the mic task asks for the loudest
+// value within a window (speaker -> DMA -> room -> mic takes up to a few hundred ms).
+#define LIVE_SPK_HIST 24
+typedef struct {
+    uint16_t energy[LIVE_SPK_HIST];
+    int64_t at_ms[LIVE_SPK_HIST];
+    uint8_t next;
+} live_spk_hist_t;
+void live_spk_hist_push(live_spk_hist_t *h, int64_t now_ms, uint16_t energy);
+uint16_t live_spk_hist_max(const live_spk_hist_t *h, int64_t now_ms, int window_ms);
+
+// Echo suppressor (no acoustic echo cancellation on the board). Measured on the device at
+// full volume: the assistant's own voice reaches the microphone at 0.1-0.8x the speaker
+// level (91% of frames below 0.8, 98% below 1.6), loud enough for the model to transcribe
+// and react to it ("are you playing something back?"). While the assistant is audible,
+// microphone frames quieter than the recent speaker level are treated as echo and
+// attenuated; two consecutive louder frames mean the user is talking over it, which opens
+// the microphone for LIVE_ECHO_HOLD_MS so interrupting by voice keeps working.
+#define LIVE_ECHO_SPK_MIN        200   // recent speaker mean-abs below this: nothing to suppress
+#define LIVE_ECHO_WINDOW_MS      400   // speaker -> DMA -> room -> mic delay covered
+#define LIVE_ECHO_PASS_X1000    1000   // mic louder than 1.0x speaker counts as the user
+#define LIVE_ECHO_PASS_FRAMES      2   // ... for this many 50 ms frames in a row
+#define LIVE_ECHO_HOLD_MS        300   // then stay open this long
+#define LIVE_ECHO_DUCK_Q8         26   // echo frames are scaled by ~0.1
+typedef struct {
+    uint8_t loud_frames;
+    int64_t open_until_ms;
+} live_echo_sup_t;
+// Gain (Q8, 256 = unchanged) for one microphone frame.
+int live_echo_gain_q8(live_echo_sup_t *s, int64_t now_ms, uint16_t mic_energy, uint16_t spk_recent);
+
 // Maps a peak to a 0..100 UI level (roughly logarithmic so speech moves the meter).
 int live_level_percent(uint16_t peak);
 

@@ -137,3 +137,42 @@ bool live_should_power_off(int64_t now_ms, int64_t idle_since_ms, bool usb_host)
 {
     return !usb_host && idle_since_ms > 0 && now_ms - idle_since_ms >= LIVE_POWER_OFF_MS;
 }
+
+uint16_t live_pcm_mean_abs(const int16_t *samples, size_t count)
+{
+    if (count == 0) return 0;
+    uint32_t sum = 0;
+    for (size_t i = 0; i < count; i++) sum += (uint32_t)(samples[i] < 0 ? -(int32_t)samples[i] : samples[i]);
+    return (uint16_t)(sum / count);
+}
+
+void live_spk_hist_push(live_spk_hist_t *h, int64_t now_ms, uint16_t energy)
+{
+    h->energy[h->next] = energy;
+    h->at_ms[h->next] = now_ms;
+    h->next = (uint8_t)((h->next + 1) % LIVE_SPK_HIST);
+}
+
+uint16_t live_spk_hist_max(const live_spk_hist_t *h, int64_t now_ms, int window_ms)
+{
+    uint16_t m = 0;
+    for (int i = 0; i < LIVE_SPK_HIST; i++) {
+        if (h->at_ms[i] > 0 && now_ms - h->at_ms[i] <= window_ms && h->energy[i] > m) m = h->energy[i];
+    }
+    return m;
+}
+
+int live_echo_gain_q8(live_echo_sup_t *s, int64_t now_ms, uint16_t mic_energy, uint16_t spk_recent)
+{
+    if (spk_recent < LIVE_ECHO_SPK_MIN) {
+        s->loud_frames = 0;
+        return 256;
+    }
+    if ((uint32_t)mic_energy * 1000u > (uint32_t)spk_recent * LIVE_ECHO_PASS_X1000) {
+        if (s->loud_frames < 255) s->loud_frames++;
+    } else {
+        s->loud_frames = 0;
+    }
+    if (s->loud_frames >= LIVE_ECHO_PASS_FRAMES) s->open_until_ms = now_ms + LIVE_ECHO_HOLD_MS;
+    return now_ms < s->open_until_ms ? 256 : LIVE_ECHO_DUCK_Q8;
+}

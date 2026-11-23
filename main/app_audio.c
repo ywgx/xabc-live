@@ -35,6 +35,12 @@ static volatile bool s_enabled;
 static volatile bool s_flush_req;
 static volatile int64_t s_last_loud_ms;
 static volatile int64_t s_barge_until_ms;
+static live_spk_hist_t s_spk_hist;     // written by play_task, read by mic_task
+// Echo measurement (debug): histogram of mic/speaker loudness while the assistant talks.
+volatile uint32_t g_echo_hist[8];      // ratio <0.02 <0.05 <0.1 <0.2 <0.4 <0.8 <1.6 >=1.6
+volatile uint32_t g_echo_spk_avg;
+volatile uint32_t g_voice_hist[6];
+volatile uint32_t g_echo_ducked;       // mic frames attenuated as echo     // mic loudness while the assistant is silent: <100 <300 <1000 <3000 <8000 >=8000
 static volatile app_uplink_fn s_uplink;
 static volatile uint32_t s_dropped_bytes;
 static volatile int s_gain_q8 = 256;
@@ -152,7 +158,32 @@ static void mic_task(void *arg)
             live_ulaw_decode_buf(ulaw, n, pcm);
         }
         const int64_t now = app_now_ms();
+        // Echo suppressor: attenuate the assistant's own voice picked up by the microphone
+        // (see live_policy.h); the user talking over it still gets through.
+        static live_echo_sup_t s_echo;
+        const uint16_t spk_recent = live_spk_hist_max(&s_spk_hist, now, LIVE_ECHO_WINDOW_MS);
+        const uint16_t mic_raw_energy = live_pcm_mean_abs(pcm, n);
+        const int echo_gain = s_test_mic ? 256 : live_echo_gain_q8(&s_echo, now, mic_raw_energy, spk_recent);
+        if (echo_gain != 256) live_pcm_apply_gain(pcm, n, echo_gain);
+        if (echo_gain != 256) g_echo_ducked++;
         const uint16_t mic_peak = live_pcm_peak(pcm, n);
+        if (g_debug && !s_test_mic) {
+            const uint16_t spk = live_spk_hist_max(&s_spk_hist, now, 400);
+            if (spk >= 300) {   // the assistant is audible
+                const uint32_t r1000 = (uint32_t)mic_raw_energy * 1000u / spk;   // before suppression
+                static const uint32_t edge[7] = { 20, 50, 100, 200, 400, 800, 1600 };
+                int b = 0;
+                while (b < 7 && r1000 >= edge[b]) b++;
+                g_echo_hist[b]++;
+                g_echo_spk_avg = (g_echo_spk_avg * 15 + spk) / 16;
+            } else if (spk < 50) {
+                const uint16_t m = mic_raw_energy;
+                static const uint16_t vedge[5] = { 100, 300, 1000, 3000, 8000 };
+                int b = 0;
+                while (b < 5 && m >= vedge[b]) b++;
+                g_voice_hist[b]++;
+            }
+        }
         s_barge_until_ms = live_barge_extend(now, s_barge_until_ms, mic_peak);
         g_mic_level = live_level_percent(mic_peak);
         live_ulaw_encode_buf(pcm, n, ulaw);
@@ -220,6 +251,7 @@ static void play_task(void *arg)
 
         const uint16_t peak = live_pcm_peak(frame, n);
         const int64_t now = app_now_ms();
+        live_spk_hist_push(&s_spk_hist, now, live_pcm_mean_abs(frame, n));
         if (peak >= LIVE_LOUD_PEAK) s_last_loud_ms = now;
         g_spk_level = live_level_percent(peak);
         const bool now_speaking = s_last_loud_ms > 0 && now - s_last_loud_ms < 600;

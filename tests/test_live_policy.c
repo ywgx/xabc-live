@@ -189,6 +189,31 @@ int main(void)
     test_barge_window();
     test_autoclose();
     {
+        live_echo_sup_t e = { 0 };
+        assert(live_echo_gain_q8(&e, 1000, 5000, 100) == 256);                 // assistant silent
+        assert(live_echo_gain_q8(&e, 1050, 800, 3000) == LIVE_ECHO_DUCK_Q8);   // echo (0.27x)
+        assert(live_echo_gain_q8(&e, 1100, 2900, 3000) == LIVE_ECHO_DUCK_Q8);  // loud echo still < 1x
+        assert(live_echo_gain_q8(&e, 1150, 4000, 3000) == LIVE_ECHO_DUCK_Q8);  // one loud frame: not yet
+        assert(live_echo_gain_q8(&e, 1200, 4000, 3000) == 256);                // two: user talks over it
+        assert(live_echo_gain_q8(&e, 1250, 500, 3000) == 256);                 // held open...
+        assert(live_echo_gain_q8(&e, 1200 + LIVE_ECHO_HOLD_MS, 500, 3000) == LIVE_ECHO_DUCK_Q8);   // ...then closes
+        assert(live_echo_gain_q8(&e, 2000, 4000, 3000) == LIVE_ECHO_DUCK_Q8);  // a single spike stays ducked
+        assert(live_echo_gain_q8(&e, 2050, 100, 3000) == LIVE_ECHO_DUCK_Q8 && e.loud_frames == 0);
+    }
+    {
+        const int16_t f[4] = { 100, -100, 300, -32768 };
+        assert(live_pcm_mean_abs(f, 4) == (100 + 100 + 300 + 32768) / 4 && live_pcm_mean_abs(f, 0) == 0);
+        live_spk_hist_t h = { 0 };
+        assert(live_spk_hist_max(&h, 1000, 400) == 0);
+        live_spk_hist_push(&h, 1000, 500);
+        live_spk_hist_push(&h, 1020, 900);
+        live_spk_hist_push(&h, 1040, 100);
+        assert(live_spk_hist_max(&h, 1100, 400) == 900);
+        assert(live_spk_hist_max(&h, 1500, 400) == 0);   // all older than the window
+        for (int i = 0; i < 2 * LIVE_SPK_HIST; i++) live_spk_hist_push(&h, 2000 + 20 * i, 10);   // wraps
+        assert(live_spk_hist_max(&h, 2000 + 20 * (2 * LIVE_SPK_HIST - 1), 400) == 10);
+    }
+    {
         live_config_t c;
         live_config_defaults(&c);
         live_wifi_upsert(&c, "Home", "password1");
