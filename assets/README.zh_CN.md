@@ -17,7 +17,7 @@
 
 | 文件 | 内容 | 来源、许可与集成方式 |
 | --- | --- | --- |
-| [`fonts/live_cjk_16.c`](fonts/live_cjk_16.c) | LVGL 9 位图字库 `live_cjk_16`，16 px、4 bpp、未压缩；包含可打印 ASCII、常用标点、GB2312 第 1–9 区符号和全部 6763 个 GB2312 汉字（共 7570 个字形，约占 1 MB Flash） | 由 [`tools/gen_live_font.py`](../tools/gen_live_font.py) 调用 `lv_font_conv` 1.5.2，从 Noto Sans SC Regular（`notofonts/noto-cjk` 的 `NotoSansSC-Regular.otf`，SHA-256 `faa6c9df652116dde789d351359f3d7e5d2285a2b2a1f04a2d7244df706d5ea9`）生成。许可为 SIL Open Font License 1.1，见 [`fonts/NotoSansSC-OFL.txt`](fonts/NotoSansSC-OFL.txt)。由 `main/CMakeLists.txt` 编译进 GPT Live 界面；字符集之外的字显示为 LVGL 占位框。 |
+| [`fonts/live_cjk_16.c`](fonts/live_cjk_16.c) | LVGL 9 位图字库 `live_cjk_16`，16 px、4 bpp、未压缩；包含可打印 ASCII、常用中文标点，以及 `main/app_*.c` 和 `main/main.c` 界面文字实际用到的字（约 400 个字形） | 由 [`tools/gen_live_font.py`](../tools/gen_live_font.py) 调用 `lv_font_conv` 1.5.2，从 Noto Sans SC Regular（`notofonts/noto-cjk` 的 `NotoSansSC-Regular.otf`，SHA-256 `faa6c9df652116dde789d351359f3d7e5d2285a2b2a1f04a2d7244df706d5ea9`）生成。许可为 SIL Open Font License 1.1，见 [`fonts/NotoSansSC-OFL.txt`](fonts/NotoSansSC-OFL.txt)。由 `main/CMakeLists.txt` 编译进 GPT Live 界面；字符集之外的字显示为 LVGL 占位框。 |
 
 ## 图片（images）
 
@@ -25,6 +25,7 @@
 
 | 文件 | 尺寸与格式 | 用途与来源 |
 | --- | --- | --- |
+| [`images/chatgpt-cover.jpg`](images/chatgpt-cover.jpg) | 1152 × 1536，JPEG | ChatGPT 语音伙伴的封面：ChatGPT 标志加标题和标语的示意图（不是实机照片），放在中英文项目 README 顶部，也用作社区玩法封面。2026-11-24 为本仓库用 SVG 绘制、经 macOS Quick Look 渲染。“ChatGPT”名称与标志是 OpenAI 的商标。 |
 | [`images/home.jpg`](images/home.jpg) | 3840 × 2160，JPEG | 嵌入中英文项目 README 的产品主图，突出 AI Passport 产品形象与开放、人人可创作的理念。 |
 | [`images/readme-hardware-specs.png`](images/readme-hardware-specs.png) | 2172 × 724，PNG RGBA | 保留为可选技术参考图，不再用于首页主视觉。于 2026-09-17 使用内置图像生成工具为本仓库生成；已根据文档中的硬件能力契约核对图中的六项标签与参数。 |
 | [`images/logo-wordmark.png`](images/logo-wordmark.png) | 1648 × 336，PNG RGBA | 从仓库原始 `images/logo.png` 中精确裁切并去除背景的黑色字标；用于中英文项目 README 的浅色主题。 |

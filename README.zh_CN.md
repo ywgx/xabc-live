@@ -2,6 +2,10 @@
   <strong>简体中文</strong> · <a href="README.md">English</a>
 </p>
 
+<p align="center">
+  <img src="assets/images/chatgpt-cover.jpg" alt="ChatGPT 实时语音伙伴" width="360">
+</p>
+
 # AI Passport · ChatGPT 语音伙伴
 
 本项目基于 [FoloToy AI Passport](https://github.com/folotoy/ai-passport) 开源固件，把它变成一个随身的实时语音助手。设备通过 Wi-Fi 直接连接

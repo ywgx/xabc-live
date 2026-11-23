@@ -19,7 +19,7 @@ Store reusable font files and generated font sources in `fonts/`.
 
 | File | Content | Source, license, and integration |
 | --- | --- | --- |
-| [`fonts/live_cjk_16.c`](fonts/live_cjk_16.c) | LVGL 9 bitmap font `live_cjk_16`, 16 px, 4 bpp, uncompressed; printable ASCII, common punctuation, GB2312 symbol rows 1–9, and all 6763 GB2312 hanzi (7570 glyphs, about 1 MB of Flash) | Generated from Noto Sans SC Regular (`NotoSansSC-Regular.otf` from `notofonts/noto-cjk`, SHA-256 `faa6c9df652116dde789d351359f3d7e5d2285a2b2a1f04a2d7244df706d5ea9`) with `lv_font_conv` 1.5.2 by [`tools/gen_live_font.py`](../tools/gen_live_font.py). SIL Open Font License 1.1, see [`fonts/NotoSansSC-OFL.txt`](fonts/NotoSansSC-OFL.txt). Compiled by `main/CMakeLists.txt` for the GPT Live UI; characters outside the set render as LVGL placeholders. |
+| [`fonts/live_cjk_16.c`](fonts/live_cjk_16.c) | LVGL 9 bitmap font `live_cjk_16`, 16 px, 4 bpp, uncompressed; printable ASCII, common Chinese punctuation and only the characters used by the UI strings in `main/app_*.c` and `main/main.c` (about 400 glyphs) | Generated from Noto Sans SC Regular (`NotoSansSC-Regular.otf` from `notofonts/noto-cjk`, SHA-256 `faa6c9df652116dde789d351359f3d7e5d2285a2b2a1f04a2d7244df706d5ea9`) with `lv_font_conv` 1.5.2 by [`tools/gen_live_font.py`](../tools/gen_live_font.py). SIL Open Font License 1.1, see [`fonts/NotoSansSC-OFL.txt`](fonts/NotoSansSC-OFL.txt). Compiled by `main/CMakeLists.txt` for the ChatGPT voice UI; rerun the script after changing on-screen text; characters outside the set render as LVGL placeholders. |
 
 ## Images
 
@@ -27,6 +27,7 @@ Store reusable source images and generated display assets in `images/`.
 
 | File | Dimensions and format | Use and source |
 | --- | --- | --- |
+| [`images/chatgpt-cover.jpg`](images/chatgpt-cover.jpg) | 1152 × 1536, JPEG | Cover of the ChatGPT voice companion: an illustration (not a device photo) of the ChatGPT logo with the title and tagline, shown at the top of both project README files and used as the community listing cover. Drawn for this repository as SVG and rendered with macOS Quick Look on 2026-11-24. "ChatGPT" and its logo are trademarks of OpenAI. |
 | [`images/home.jpg`](images/home.jpg) | 3840 × 2160, JPEG | Product hero image embedded in both project README files to foreground AI Passport and its open, maker-oriented identity. |
 | [`images/readme-hardware-specs.png`](images/readme-hardware-specs.png) | 2172 × 724, PNG RGBA | Optional technical infographic retained as a reference asset; it is no longer used as the homepage hero. Generated for this repository with the built-in image generation tool on 2026-09-17; the six labels and values were checked against the documented hardware contract. |
 | [`images/logo-wordmark.png`](images/logo-wordmark.png) | 1648 × 336, PNG RGBA | Transparent black wordmark extracted from the repository's original `images/logo.png`; embedded in both project README files for light backgrounds. |

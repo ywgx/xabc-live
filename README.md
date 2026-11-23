@@ -2,6 +2,10 @@
   <a href="README.zh_CN.md">简体中文</a> · <strong>English</strong>
 </p>
 
+<p align="center">
+  <img src="assets/images/chatgpt-cover.jpg" alt="ChatGPT real-time voice companion" width="360">
+</p>
+
 # AI Passport · ChatGPT Voice Companion
 
 Based on the open-source [FoloToy AI Passport](https://github.com/folotoy/ai-passport) firmware, this project turns the
