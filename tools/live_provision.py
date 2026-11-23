@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Provision Wi-Fi and the XSI Router API key into an AI Passport running ChatGPT.
+"""Provision Wi-Fi and the XAI Router API key into an AI Passport running ChatGPT.
 
 The device exposes a console on its native USB Serial/JTAG port. This script
 sends `wifi`, `key`, and optional `host`/`voice`/`prompt` commands and waits for
@@ -7,7 +7,7 @@ each "OK <cmd>" reply. Secrets are read from environment variables or typed at
 a hidden prompt; they are never written to disk or printed.
 
     python3 tools/live_provision.py --ssid MyWiFi
-    XSI_API_KEY=sk-... WIFI_PASSWORD=... python3 tools/live_provision.py --ssid MyWiFi
+    XAI_API_KEY=sk-... WIFI_PASSWORD=... python3 tools/live_provision.py --ssid MyWiFi
 
 Requires pyserial (available in the activated ESP-IDF Python environment).
 Writing the merged full.bin at 0x0 erases these settings; run this again afterwards.
@@ -104,7 +104,7 @@ def main() -> int:
     ap.add_argument("--port", help="serial port (default: the single Espressif USB device)")
     ap.add_argument("--ssid", help="Wi-Fi SSID (2.4 GHz)")
     ap.add_argument("--open-network", action="store_true", help="the Wi-Fi network has no password")
-    ap.add_argument("--host", help="API host, default api.xsirouter.com")
+    ap.add_argument("--host", help="API host, default api.xairouter.com")
     ap.add_argument("--voice", help="output voice, default marin")
     ap.add_argument("--prompt", help="assistant instructions")
     ap.add_argument("--skip-key", action="store_true", help="keep the stored API key")
@@ -124,7 +124,7 @@ def main() -> int:
                 console.run("wifi", cmd, secret=True)
                 print("Wi-Fi saved.")
             if not args.skip_key:
-                key = os.environ.get("XSI_API_KEY") or getpass.getpass("XSI Router API key: ")
+                key = os.environ.get("XAI_API_KEY") or getpass.getpass("XAI Router API key: ")
                 console.run("key", f"key {quote(key.strip())}", secret=True)
                 print("API key saved.")
             if args.host:

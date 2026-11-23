@@ -1,7 +1,7 @@
 // main/live_proto.h -- GPT-Live (OpenAI Live API, gpt-live-1) WebSocket message helpers.
 //
 // Pure C with no ESP-IDF or LVGL dependency so it can be covered by host tests.
-// Protocol reference: XSI Router "gpt-live-1 接入指南" (wss://<host>/v1/live/sessions):
+// Protocol reference: XAI Router "gpt-live-1 接入指南" (wss://<host>/v1/live/sessions):
 //   client -> server: session.start, session.input_audio.append, session.close
 //   server -> client: session.started, session.output_audio.delta,
 //                     session.input_transcript.delta, session.output_transcript.delta,

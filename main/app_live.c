@@ -798,7 +798,8 @@ static bool start_session_inner(void)
     char *start_msg = malloc(msg_cap);
     size_t n = 0;
     if (instr && start_msg) {
-        snprintf(instr, instr_cap, "%s%s", cfg.prompt, device_rule);
+        // Without a custom prompt the instructions are just the two device facts.
+        snprintf(instr, instr_cap, "%s%s", cfg.prompt, cfg.prompt[0] ? device_rule : device_rule + 2);
         n = live_proto_build_session_start("audio/pcmu", APP_SAMPLE_RATE, cfg.voice, instr,
                                            start_msg, msg_cap);
     }

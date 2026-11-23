@@ -10,7 +10,7 @@
 
 static void test_event_type(void)
 {
-    // Real server shapes observed on api.xsirouter.com (payloads shortened).
+    // Real server shapes observed on api.xairouter.com (payloads shortened).
     assert(live_proto_event_type(S("{\"type\":\"session.output_audio.delta\",\"delta\":\"AAAA\"}")) ==
            LIVE_EV_OUTPUT_AUDIO_DELTA);
     // session.started carries event_id first and nested "type" keys later.
@@ -28,7 +28,7 @@ static void test_event_type(void)
     assert(live_proto_event_type(S("{\"type\":\"session.closed\",\"reason\":\"close_requested\"}")) ==
            LIVE_EV_SESSION_CLOSED);
     assert(live_proto_event_type(S("{\"type\":\"session.usage.updated\"}")) == LIVE_EV_USAGE_UPDATED);
-    // Shape observed on api.xsirouter.com: the id sits inside "delegation", after a
+    // Shape observed on api.xairouter.com: the id sits inside "delegation", after a
     // top-level event_id in some orders; "id" must not match "event_id".
     const char deleg[] =
         "{\"event_id\":\"event_E\",\"type\":\"session.delegation.created\",\"offset_ms\":2400,"

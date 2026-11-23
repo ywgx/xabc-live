@@ -1,7 +1,7 @@
 // main/main.c -- FoloToy AI Passport · ChatGPT voice companion.
 //
-// Talks to gpt-live-1 through the OpenAI Live API offered by XSI Router
-// (wss://api.xsirouter.com/v1/live/sessions). Wi-Fi and the API key are
+// Talks to gpt-live-1 through the OpenAI Live API offered by XAI Router
+// (wss://api.xairouter.com/v1/live/sessions). Wi-Fi and the API key are
 // provisioned into NVS over USB (tools/live_provision.py).
 //
 // Buttons:

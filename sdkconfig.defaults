@@ -37,7 +37,7 @@ CONFIG_FREERTOS_HZ=1000
 # GPT Live 只用 Wi-Fi；关闭 BLE 以给 TLS、WebSocket 与音频缓冲留出内部 RAM。
 CONFIG_BT_ENABLED=n
 
-# --- TLS (wss://api.xsirouter.com) ---
+# --- TLS (wss://api.xairouter.com) ---
 # 使用 ESP-IDF 证书包校验服务器；动态缓冲在握手后释放不用的 TLS 内存（无 PSRAM）。
 CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=y
 CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_FULL=y
@@ -65,7 +65,7 @@ CONFIG_ESP_WIFI_RX_IRAM_OPT=n
 CONFIG_LWIP_IRAM_OPTIMIZATION=n
 
 # --- TCP 窗口 ---
-# 到 api.xsirouter.com 的往返约 250 ms，双向音频各约 43 KB/s（Base64 JSON）。默认 5760 字节
+# 到 api.xairouter.com 的往返约 250 ms，双向音频各约 43 KB/s（Base64 JSON）。默认 5760 字节
 # 窗口每秒只能传约 23 KB，会话一开始上行就写超时断线；16 KB 窗口覆盖带宽时延积。
 CONFIG_LWIP_TCP_SND_BUF_DEFAULT=16384
 CONFIG_LWIP_TCP_WND_DEFAULT=16384

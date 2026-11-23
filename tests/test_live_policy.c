@@ -79,8 +79,8 @@ static void test_config(void)
 {
     live_config_t c;
     live_config_defaults(&c);
-    assert(strcmp(c.host, "api.xsirouter.com") == 0 && strcmp(c.voice, "marin") == 0);
-    assert(c.prompt[0] && !live_config_ready(&c));
+    assert(strcmp(c.host, "api.xairouter.com") == 0 && strcmp(c.voice, "marin") == 0);
+    assert(c.prompt[0] == '\0' && !live_config_ready(&c));   // no style rules by default
     assert(live_wifi_upsert(&c, "home", "12345678"));
     assert(!live_config_ready(&c));
     strcpy(c.api_key, "sk-0123456789abcdef");
@@ -96,9 +96,9 @@ static void test_config(void)
     assert(!live_config_valid_api_key("sk-short"));
     assert(!live_config_valid_api_key("sk-0123456789 abcdef"));
     assert(!live_config_valid_api_key("sk-0123456789\"abcdef"));
-    assert(live_config_valid_host("api.xsirouter.com") && live_config_valid_host("10.0.0.2:8443"));
-    assert(!live_config_valid_host("https://api.xsirouter.com"));
-    assert(!live_config_valid_host("api.xsirouter.com/v1") && !live_config_valid_host("host:99999"));
+    assert(live_config_valid_host("api.xairouter.com") && live_config_valid_host("10.0.0.2:8443"));
+    assert(!live_config_valid_host("https://api.xairouter.com"));
+    assert(!live_config_valid_host("api.xairouter.com/v1") && !live_config_valid_host("host:99999"));
     assert(!live_config_valid_host("host:") && !live_config_valid_host(".x.com"));
     assert(live_config_valid_voice("marin") && live_config_valid_voice("cove"));
     assert(!live_config_valid_voice("Marin") && !live_config_valid_voice(""));

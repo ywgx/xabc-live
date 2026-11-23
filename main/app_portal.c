@@ -3,8 +3,8 @@
 // The device opens an open hotspot "ChatGPT-XXXX" and shows its Wi-Fi QR code on the
 // screen. Phones that join get the setup page automatically (captive portal: every DNS
 // name resolves to the device, every unknown URL redirects to it). Step 1 picks a
-// Wi-Fi network from a scan and takes its password, step 2 takes the XSI Router API key
-// (the API host stays the default api.xsirouter.com). Saving writes NVS and restarts.
+// Wi-Fi network from a scan and takes its password, step 2 takes the XAI Router API key
+// (the API host stays the default api.xairouter.com). Saving writes NVS and restarts.
 #include "app.h"
 #include "live_config.h"
 #include "live_form.h"
@@ -74,9 +74,9 @@ static const char PAGE_FORM_2[] =
     "autocapitalize=off autocorrect=off spellcheck=false>"
     "<p class=hint>注意大小写。中文标点会自动转成英文半角，首尾空格会自动去掉。</p>"
     "<button type=button onclick=next()>下一步</button></div>"
-    "<div id=s2><p class=hint>第 2 步，共 2 步：XSI Router API Key</p>"
+    "<div id=s2><p class=hint>第 2 步，共 2 步：XAI Router API Key</p>"
     "<label>API Key</label><input name=key placeholder='sk-...' autocomplete=off "
-    "autocapitalize=off spellcheck=false><p class=hint>在 xsirouter.com 控制台获取。";
+    "autocapitalize=off spellcheck=false><p class=hint>在 xairouter.com 控制台获取。";
 
 static const char PAGE_FORM_3[] =
     "</p><button>保存并重启</button></div></form>"

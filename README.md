@@ -6,7 +6,7 @@
 
 Based on the open-source [FoloToy AI Passport](https://github.com/folotoy/ai-passport) firmware, this project turns the
 device into a pocket real-time voice assistant. It connects over Wi-Fi straight to the official OpenAI Live API offered
-by [XSI Router](https://xsirouter.com/blog/gpt-live-1-openai-live-api/) and uses the full-duplex voice model
+by [XAI Router](https://xairouter.com/blog/gpt-live-1-openai-and-codex/) and uses the full-duplex voice model
 `gpt-live-1`: after power-on it joins the network and starts a conversation by itself; it is full duplex, so you can
 talk over it while it speaks; five minutes without talking ends the conversation. During a conversation the screen shows
 only the state orb and one status line.
@@ -51,13 +51,13 @@ one session lasts at most 30 minutes. Turn off the automatic conversation at pow
 2. Scan it with the phone camera to join the device hotspot; the setup page opens by itself (if not, open any web address
    or `192.168.4.1` in a browser).
 3. Step 1: pick a nearby Wi-Fi network (2.4 GHz only) and enter its password (shown in plain text).
-4. Step 2: paste your [XSI Router](https://xsirouter.com) API key and tap "保存并重启" (Save and restart).
+4. Step 2: paste your [XAI Router](https://xairouter.com) API key and tap "保存并重启" (Save and restart).
 5. The device first checks that it can actually join that Wi-Fi before saving it, then starts a conversation. If it
    cannot connect, the QR code returns and the page explains why; the previous settings are kept.
 
 To change Wi-Fi or the key later: **long-press ▲** to open setup again (leave the key empty to keep it); press OK to
 leave setup. Full-width punctuation typed with a Chinese keyboard is converted to half-width and leading/trailing
-spaces are removed automatically. The API host is fixed to `api.xsirouter.com`.
+spaces are removed automatically. The API host is fixed to `api.xairouter.com`.
 
 Developers can also configure the device over USB serial (the key is never shown or written to a file):
 
@@ -75,7 +75,7 @@ key masked). Flashing the merged `full.bin` at `0x0` erases the settings; to upd
 ```text
 mic ──► μ-law ──► uplink task ──► session.input_audio.append ──────────────────┐
                                                                               ▼
-                                   wss://api.xsirouter.com/v1/live/sessions (gpt-live-1)
+                                   wss://api.xairouter.com/v1/live/sessions (gpt-live-1)
                                                                               │
 speaker ◄── jitter buffer (catches up) ◄── Base64 decode ◄── session.output_audio.delta ◄─┤
 status line ◄──────────────────── session.input/output_transcript.delta ◄──────┘
@@ -178,8 +178,8 @@ Output: `build/FoloToy-AI-Passport-full.bin`, flashed at `0x0`. Development note
 - No acoustic echo cancellation: full duplex relies on the model telling its own echo apart; at very high volume or in a
   very quiet room it may occasionally take the echo for an interruption. Lower the volume if that happens.
 - The API key is stored in the device flash and can be read by whoever holds the device; use it only on your own device
-  and limit or rotate the key in the XSI console if needed.
-- Only XSI's official OpenAI Live API (`/v1/live/sessions`) is implemented. Codex Live V3 is WebRTC-only and would need
+  and limit or rotate the key in the XAI Router console if needed.
+- Only XAI Router's official OpenAI Live API (`/v1/live/sessions`) is implemented. Codex Live V3 is WebRTC-only and would need
   an extra relay service.
 - Some Wi-Fi 7 routers were seen to keep a broken client state after the device re-associates without a clean disconnect
   (for example after a reset): DHCP/DNS work but all TCP is dropped. The firmware's TCP check recovers by reconnecting

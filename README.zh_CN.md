@@ -5,7 +5,7 @@
 # AI Passport · ChatGPT 语音伙伴
 
 本项目基于 [FoloToy AI Passport](https://github.com/folotoy/ai-passport) 开源固件，把它变成一个随身的实时语音助手。设备通过 Wi-Fi 直接连接
-[XSI Router](https://xsirouter.com/blog/gpt-live-1-openai-live-api/) 提供的 OpenAI 官方 Live API，使用全双工语音模型
+[XAI Router](https://xairouter.com/blog/gpt-live-1-openai-and-codex/) 提供的 OpenAI 官方 Live API，使用全双工语音模型
 `gpt-live-1`：开机联网后自动进入对话，全双工——它说话时你可以直接开口插话；五分钟没有对话自动结束。对话中屏幕只有
 状态圆球和一行状态。
 
@@ -46,12 +46,12 @@
 1. 设备第一次开机（还没配置）时，屏幕显示二维码和“扫码连接 ChatGPT-XXXX”。
 2. 用手机相机扫码，连上设备热点，设置页会自动弹出（没弹出就在浏览器打开任意网址或 `192.168.4.1`）。
 3. 第 1 步：从附近网络里选 Wi-Fi（只支持 2.4 GHz），输入密码（明文显示）。
-4. 第 2 步：粘贴 [XSI Router](https://xsirouter.com) 的 API Key，点“保存并重启”。
+4. 第 2 步：粘贴 [XAI Router](https://xairouter.com) 的 API Key，点“保存并重启”。
 5. 设备先验证这个 Wi-Fi 能连上才正式保存，然后自动进入对话；连不上会重新显示二维码并在页面上说明原因，
    原来的配置不受影响。
 
 以后要换 Wi-Fi 或 Key：**长按 ▲** 重新进入设置（已有 Key 可留空保持不变）；设置时按 OK 退出。
-中文输入法打出的全角标点会自动转成半角，首尾空格会自动去掉。API 地址固定为 `api.xsirouter.com`。
+中文输入法打出的全角标点会自动转成半角，首尾空格会自动去掉。API 地址固定为 `api.xairouter.com`。
 
 开发者也可以用 USB 串口配置（Key 不会显示或写入文件）：
 
@@ -69,7 +69,7 @@ python3 tools/live_provision.py --ssid 你的WiFi名称
 ```text
 麦克风 ──► μ-law ──► 上行发送任务 ──► session.input_audio.append ──────────────┐
                                                                               ▼
-                                   wss://api.xsirouter.com/v1/live/sessions（gpt-live-1）
+                                   wss://api.xairouter.com/v1/live/sessions（gpt-live-1）
                                                                               │
 喇叭 ◄── 抖动缓冲（自动追延迟）◄── Base64 解码 ◄── session.output_audio.delta ◄───┤
 屏幕状态 ◄──────────────────── session.input/output_transcript.delta ◄────────┘
@@ -156,8 +156,8 @@ PASS/FAIL：是否识别到语音、是否有回答、上下行速率、卡顿�
 ## 已知限制与网络注意事项
 
 - 没有声学回声消除：全双工依赖模型自己分辨回声，音量很大或环境安静时偶尔可能把回声当成插话；遇到时可调低音量。
-- API Key 存在设备 Flash 中，拿到设备的人可以读出；请只在自己的设备上使用，必要时在 XSI 控制台限制额度或轮换 Key。
-- 只实现了 XSI 的 OpenAI 官方 Live API（`/v1/live/sessions`）。Codex Live V3 只支持 WebRTC，需要额外的中转服务。
+- API Key 存在设备 Flash 中，拿到设备的人可以读出；请只在自己的设备上使用，必要时在 XAI Router 控制台限制额度或轮换 Key。
+- 只实现了 XAI Router 的 OpenAI 官方 Live API（`/v1/live/sessions`）。Codex Live V3 只支持 WebRTC，需要额外的中转服务。
 - 实测部分 Wi-Fi 7 路由器在设备未正常断开（例如复位）后重新关联时，可能保留错误的客户端状态：DHCP/DNS 正常
   但所有 TCP 都被丢弃。固件的 TCP 自检会自动干净地重连来恢复；建议给设备使用不在 MLO 组里的 2.4 GHz WPA2 SSID。
 - ESP-IDF 5.5.3 的 linenoise 在“dumb”终端模式下，输入行达到命令行上限时会越界写；不要向控制台发送超长行

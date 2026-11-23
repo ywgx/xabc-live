@@ -49,10 +49,10 @@ int main(void)
 
     // Handshake request and response handling.
     char req[512];
-    n = live_ws_handshake_request(req, sizeof(req), "api.xsirouter.com", "/v1/live/sessions",
+    n = live_ws_handshake_request(req, sizeof(req), "api.xairouter.com", "/v1/live/sessions",
                                   "dGhlIHNhbXBsZSBub25jZQ==", "Authorization: Bearer sk-test\r\n");
     assert(n == strlen(req));
-    assert(strncmp(req, "GET /v1/live/sessions HTTP/1.1\r\nHost: api.xsirouter.com\r\n", 57) == 0);
+    assert(strncmp(req, "GET /v1/live/sessions HTTP/1.1\r\nHost: api.xairouter.com\r\n", 57) == 0);
     assert(strstr(req, "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"));
     assert(strstr(req, "Authorization: Bearer sk-test\r\n\r\n") == req + n - strlen("Authorization: Bearer sk-test\r\n\r\n"));
     assert(live_ws_handshake_request(req, 20, "h", "/", "k", NULL) == 0);

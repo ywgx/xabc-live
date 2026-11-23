@@ -12,10 +12,10 @@
 #define LIVE_CFG_VOICE_MAX     32
 #define LIVE_CFG_PROMPT_MAX   600
 
-#define LIVE_CFG_DEFAULT_HOST  "api.xsirouter.com"
+#define LIVE_CFG_DEFAULT_HOST  "api.xairouter.com"
 #define LIVE_CFG_DEFAULT_VOICE "marin"
-#define LIVE_CFG_DEFAULT_PROMPT \
-    "你是 AI Passport 上的中文语音助手。回答要口语化、简洁，一般不超过三句话。"
+// No style rules by default: the model answers naturally. `prompt` can add one.
+#define LIVE_CFG_DEFAULT_PROMPT ""
 
 #define LIVE_CFG_WIFI_MAX       4   // saved Wi-Fi networks (e.g. home IoT SSID + phone hotspot)
 

@@ -361,7 +361,7 @@ esp_err_t app_console_start(void)
         { .command = "wifi_del", .help = "wifi_del <ssid>", .func = cmd_wifi_del },
         { .command = "wifi_list", .help = "list saved Wi-Fi networks", .func = cmd_wifi_list },
         { .command = "key", .help = "key <api-key>", .func = cmd_key },
-        { .command = "host", .help = "host <host[:port]> (default api.xsirouter.com)", .func = cmd_host },
+        { .command = "host", .help = "host <host[:port]> (default api.xairouter.com)", .func = cmd_host },
         { .command = "voice", .help = "voice <name> (default marin)", .func = cmd_voice },
         { .command = "prompt", .help = "prompt \"<instructions>\"", .func = cmd_prompt },
         { .command = "config", .help = "show settings (secrets masked)", .func = cmd_config },
