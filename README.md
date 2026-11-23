@@ -20,17 +20,18 @@ only the state orb and one status line.
 | ▲ long press | Open phone setup (change Wi-Fi / key) |
 | ▲ / ▼ short press | Volume up / down by 10% (default 150%, the maximum; 0–100% is the codec volume, 110–150% adds 1.4–3x digital gain with a soft limiter, so it does not distort) |
 
-The middle of the screen shows a sky-blue gradient sphere in the style of ChatGPT's voice mode, with soft light drifting
-inside it:
+The middle of the screen shows the animated ChatGPT logo:
 
-| Orb | State |
+| Logo | State |
 | --- | --- |
-| Sky blue, gently breathing | Ready, press OK to start (the title, Wi-Fi dot and battery are hidden during a conversation) |
-| Grey-blue, breathing | Joining Wi-Fi, checking the network or connecting to ChatGPT |
-| Sky blue, swelling with your voice | Listening to you |
-| Sky blue, light moving faster and pulsing with the reply | The assistant is answering |
-| Red | Error, the status line shows why; press OK to retry |
+| White, turning slowly and gently breathing | Ready, press OK to start (the title, Wi-Fi dot and battery are hidden during a conversation) |
+| Grey, blinking | Joining Wi-Fi, checking the network or connecting to ChatGPT |
+| White, swelling with your voice | Listening to you |
+| White, spinning faster and pulsing with the reply | The assistant is answering |
+| Red, still | Error, the status line shows why; press OK to retry |
 | QR code | Setup mode: scan it with a phone to join the hotspot, then enter Wi-Fi and the API key |
+
+"ChatGPT" and its logo are trademarks of OpenAI; this project is not affiliated with OpenAI.
 
 Say a short goodbye such as "拜拜", "再见" or "关闭吧" ("bye", "goodbye", "turn off") and the conversation ends once the
 assistant has said goodbye. Only a whole utterance of at most 12 characters counts, so a question like "how do I turn off
@@ -150,7 +151,7 @@ ends it).
 | `main/main.c` | Start-up order and button mapping |
 | `main/app_live.c` | Session state machine, network task (TLS + WebSocket), protocol events, drop detection, auto start/end |
 | `main/app_audio.c` | Microphone and playback tasks, μ-law buffers, latency catch-up, clearing playback on OK, test microphone |
-| `main/app_ui.c` | Minimal UI (state orb, one status line; title, Wi-Fi dot and battery while idle; setup QR code) |
+| `main/app_ui.c`, `main/chatgpt_logo.c` | Minimal UI (animated logo, one status line; title, Wi-Fi dot and battery while idle; setup QR code), logo bitmap |
 | `main/app_wifi.c` | Wi-Fi, TCP check and clean re-association |
 | `main/app_portal.c` | Phone setup: hotspot, captive DNS and the setup page |
 | `main/app_power.c`, `main/app_diag.c` | Automatic power off (deep sleep), watchdog diagnostics |

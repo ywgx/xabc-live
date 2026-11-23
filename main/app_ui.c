@@ -1,10 +1,10 @@
 // main/app_ui.c -- the GPT-Live companion screen (240 x 320, dark theme).
 //
 // Layout: title + Wi-Fi dot + battery (top, hidden during a conversation), a voice orb and
-// one short status line. Deliberately minimal: no captions. The orb is a soft sky-blue
-// gradient sphere with drifting light inside (in the style of ChatGPT's voice mode): it
-// breathes while waiting, swells with your voice while listening and pulses faster while
-// the assistant speaks. Grey-blue while connecting, red on errors.
+// one short status line. Deliberately minimal: no captions. The centre is the ChatGPT logo
+// (main/chatgpt_logo.c, an alpha-only bitmap tinted per state): it turns slowly and
+// breathes while waiting, swells with your voice while listening, spins faster and pulses
+// with the reply while the assistant speaks, blinks while connecting and turns red on errors.
 // Rendering happens only in an LVGL timer (LVGL task context), which polls the
 // shared model, so worker tasks never touch LVGL objects.
 //
@@ -27,25 +27,22 @@ LV_FONT_DECLARE(live_cjk_16);
 #define COL_RED     0xEF4444
 #define COL_GRAY    0x5B6475
 
-// Orb palettes (top -> bottom of the vertical gradient).
-#define ORB_SKY_TOP    0xF2FAFF
-#define ORB_SKY_BOTTOM 0x3E8EF7
-#define ORB_MIST_TOP   0xEEF2F7
-#define ORB_MIST_BOTTOM 0x8E9BB0
-#define ORB_RED_TOP    0xFFE2E2
-#define ORB_RED_BOTTOM 0xE5484D
-#define ORB_BLOBS      3
+#define LOGO_WHITE  0xF5F7FA
+#define LOGO_MIST   0xAEB7C6   // connecting
+#define LOGO_RED    0xEF4444   // error
+#define LOGO_PX     112        // bitmap size (main/chatgpt_logo.c)
+
+LV_IMAGE_DECLARE(chatgpt_logo);
 
 #define ORB_CX      120
 #define ORB_CY      150
 #define ORB_BASE    128
 #define QR_SIZE     140
 
-static lv_obj_t *s_scr, *s_halo, *s_orb, *s_title_dot, *s_title, *s_battery;
+static lv_obj_t *s_scr, *s_halo, *s_logo, *s_title_dot, *s_title, *s_battery;
 static lv_obj_t *s_status;
 static lv_obj_t *s_qr;            // setup hotspot QR code (in place of the orb)
-static lv_obj_t *s_blob[ORB_BLOBS]; // soft light drifting inside the orb
-static float s_phase;               // blob motion phase (advances faster while speaking)
+static float s_angle;               // logo rotation in degrees
 static unsigned s_seen_version = ~0u;
 static int s_last_volume = -1;
 static int64_t s_volume_toast_until;
@@ -75,37 +72,16 @@ static lv_obj_t *label(lv_obj_t *parent, const lv_font_t *font, uint32_t color)
     return l;
 }
 
-static void orb_palette(uint32_t *top, uint32_t *bottom)
+static uint32_t logo_color(void)
 {
     switch (s_state) {
-    case APP_ST_ERROR:
-        *top = ORB_RED_TOP;
-        *bottom = ORB_RED_BOTTOM;
-        return;
+    case APP_ST_ERROR: return LOGO_RED;
     case APP_ST_SETUP:
     case APP_ST_WIFI:
     case APP_ST_CONNECTING:
-    case APP_ST_CLOSING:
-        *top = ORB_MIST_TOP;
-        *bottom = ORB_MIST_BOTTOM;
-        return;
-    default:   // ready / listening / speaking
-        *top = ORB_SKY_TOP;
-        *bottom = ORB_SKY_BOTTOM;
-        return;
+    case APP_ST_CLOSING: return LOGO_MIST;
+    default: return LOGO_WHITE;   // ready / listening / speaking
     }
-}
-
-// A blob is a circle with a vertical gradient fading from `opa` to transparent: layered
-// on the orb it reads as soft, cloud-like light rather than a hard disc.
-static lv_obj_t *blob(lv_obj_t *parent, uint32_t color, lv_opa_t opa)
-{
-    lv_obj_t *o = circle(parent, 40, color, LV_OPA_COVER);
-    lv_obj_set_style_bg_grad_color(o, lv_color_hex(color), 0);
-    lv_obj_set_style_bg_grad_dir(o, LV_GRAD_DIR_VER, 0);
-    lv_obj_set_style_bg_main_opa(o, opa, 0);
-    lv_obj_set_style_bg_grad_opa(o, LV_OPA_TRANSP, 0);
-    return o;
 }
 
 static void render_model(void)
@@ -147,19 +123,16 @@ static void render_model(void)
             lv_qrcode_update(s_qr, data, (uint32_t)strlen(data));
         }
         lv_obj_remove_flag(s_qr, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(s_orb, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(s_logo, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(s_halo, LV_OBJ_FLAG_HIDDEN);
     } else {
         lv_obj_add_flag(s_qr, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_remove_flag(s_orb, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(s_logo, LV_OBJ_FLAG_HIDDEN);
         lv_obj_remove_flag(s_halo, LV_OBJ_FLAG_HIDDEN);
     }
     lv_obj_set_style_text_color(s_status, lv_color_hex(s_state == APP_ST_ERROR ? COL_RED : COL_DIM), 0);
-    uint32_t orb_top, orb_bottom;
-    orb_palette(&orb_top, &orb_bottom);
-    lv_obj_set_style_bg_color(s_orb, lv_color_hex(orb_top), 0);
-    lv_obj_set_style_bg_grad_color(s_orb, lv_color_hex(orb_bottom), 0);
-    lv_obj_set_style_bg_color(s_halo, lv_color_hex(orb_bottom), 0);
+    lv_obj_set_style_image_recolor(s_logo, lv_color_hex(logo_color()), 0);
+    lv_obj_set_style_bg_color(s_halo, lv_color_hex(logo_color()), 0);
     if (s_last_volume >= 0 && volume != s_last_volume) {
         s_volume_toast_until = app_now_ms() + 1500;
         lv_label_set_text_fmt(s_status, LV_SYMBOL_VOLUME_MID " 音量 %d%%", volume);
@@ -186,25 +159,24 @@ static void render_frame(void)
     }
     const int orb = ORB_BASE + (int)(s_level_smooth * 0.22f + breath);
     const int halo = orb + 18 + (int)(s_level_smooth * 0.3f);
-    lv_obj_set_size(s_orb, orb, orb);
-    lv_obj_set_pos(s_orb, ORB_CX - orb / 2, ORB_CY - orb / 2);
+    lv_image_set_scale(s_logo, (uint32_t)(256 * orb / LOGO_PX));
     lv_obj_set_size(s_halo, halo, halo);
     lv_obj_set_pos(s_halo, ORB_CX - halo / 2, ORB_CY - halo / 2);
 
-    // Light drifting inside the sphere: slow while waiting, livelier with the voice.
-    const float speed = s_state == APP_ST_LIVE ? (s_ai_speaking ? 0.11f : 0.06f) + s_level_smooth * 0.0012f : 0.03f;
-    s_phase += speed;
-    static const float k_size[ORB_BLOBS] = { 0.62f, 0.52f, 0.46f };   // of the orb diameter
-    static const float k_rate[ORB_BLOBS][2] = { { 1.0f, 0.7f }, { -0.8f, 1.1f }, { 0.6f, -1.3f } };
-    for (int i = 0; i < ORB_BLOBS; i++) {
-        const int d = (int)(orb * k_size[i]);
-        // Keep each blob inside the circle: centre offset + radius <= orb radius.
-        const float reach = (orb - d) * 0.5f * 0.85f;
-        const float x = reach * sinf(s_phase * k_rate[i][0] + i * 2.1f);
-        const float y = reach * cosf(s_phase * k_rate[i][1] + i * 1.3f);
-        lv_obj_set_size(s_blob[i], d, d);
-        lv_obj_set_pos(s_blob[i], orb / 2 - d / 2 + (int)x, orb / 2 - d / 2 + (int)y);
+    // Rotation: slow while waiting, faster while listening, fastest while answering
+    // (plus a push from the voice level). Connecting blinks; errors stand still.
+    float spin = 0.25f;                                         // degrees per frame (25 fps)
+    if (s_state == APP_ST_LIVE) spin = (s_ai_speaking ? 1.6f : 0.6f) + s_level_smooth * 0.02f;
+    if (s_state == APP_ST_WIFI || s_state == APP_ST_CONNECTING || s_state == APP_ST_CLOSING) spin = 1.0f;
+    if (s_state == APP_ST_ERROR) spin = 0.0f;
+    s_angle += spin;
+    if (s_angle >= 360.0f) s_angle -= 360.0f;
+    lv_image_set_rotation(s_logo, (int32_t)(s_angle * 10.0f));   // 0.1 degree units
+    lv_opa_t opa = LV_OPA_COVER;
+    if (s_state == APP_ST_WIFI || s_state == APP_ST_CONNECTING || s_state == APP_ST_CLOSING) {
+        opa = (lv_opa_t)(150 + 100 * sinf((float)(now % 1200) / 1200.0f * 6.2832f));   // ~60..100%
     }
+    lv_obj_set_style_image_opa(s_logo, opa, 0);
 
     static int last_soc = -2;
     static bool last_wifi;
@@ -256,13 +228,13 @@ esp_err_t app_ui_start(void)
     s_battery = label(s_scr, &lv_font_montserrat_14, COL_DIM);
     lv_obj_align(s_battery, LV_ALIGN_TOP_RIGHT, -26, 21);
 
-    s_halo = circle(s_scr, ORB_BASE + 18, ORB_SKY_BOTTOM, LV_OPA_20);
-    s_orb = circle(s_scr, ORB_BASE, ORB_SKY_TOP, LV_OPA_COVER);
-    lv_obj_set_style_bg_grad_color(s_orb, lv_color_hex(ORB_SKY_BOTTOM), 0);
-    lv_obj_set_style_bg_grad_dir(s_orb, LV_GRAD_DIR_VER, 0);
-    s_blob[0] = blob(s_orb, 0xFFFFFF, LV_OPA_70);    // bright highlight
-    s_blob[1] = blob(s_orb, 0x7CC4FF, LV_OPA_60);    // sky blue
-    s_blob[2] = blob(s_orb, 0x2563EB, LV_OPA_50);    // deep blue
+    s_halo = circle(s_scr, ORB_BASE + 18, LOGO_WHITE, LV_OPA_10);   // faint glow behind the logo
+    s_logo = lv_image_create(s_scr);
+    lv_image_set_src(s_logo, &chatgpt_logo);
+    lv_obj_set_pos(s_logo, ORB_CX - LOGO_PX / 2, ORB_CY - LOGO_PX / 2);
+    lv_image_set_pivot(s_logo, LOGO_PX / 2, LOGO_PX / 2);
+    lv_obj_set_style_image_recolor(s_logo, lv_color_hex(LOGO_WHITE), 0);
+    lv_obj_set_style_image_recolor_opa(s_logo, LV_OPA_COVER, 0);
 
     s_qr = lv_qrcode_create(s_scr);
     lv_qrcode_set_size(s_qr, QR_SIZE);

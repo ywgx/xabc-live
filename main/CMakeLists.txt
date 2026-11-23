@@ -9,6 +9,7 @@ idf_component_register(
          "app_audio.c"
          "app_live.c"
          "app_ui.c"
+         "chatgpt_logo.c"
          "app_testplay.c"
          "app_diag.c"
          "app_power.c"
