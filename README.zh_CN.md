@@ -163,7 +163,6 @@ PASS/FAIL：是否识别到语音、是否有回答、上下行速率、卡顿�
 
 - 没有声学回声消除：回声抑制按音量判断，AI 说话时轻声插话会被当成回声；需要时大声一点、按 OK 打断，或把音量调低。
 - API Key 存在设备 Flash 中，拿到设备的人可以读出；请只在自己的设备上使用，必要时在 XAI Router 控制台限制额度或轮换 Key。
-- 只实现了 XAI Router 的 OpenAI 官方 Live API（`/v1/live/sessions`）。Codex Live V3 只支持 WebRTC，需要额外的中转服务。
 - 实测部分 Wi-Fi 7 路由器在设备未正常断开（例如复位）后重新关联时，可能保留错误的客户端状态：DHCP/DNS 正常
   但所有 TCP 都被丢弃。固件的 TCP 自检会自动干净地重连来恢复；建议给设备使用不在 MLO 组里的 2.4 GHz WPA2 SSID。
 - ESP-IDF 5.5.3 的 linenoise 在“dumb”终端模式下，输入行达到命令行上限时会越界写；不要向控制台发送超长行

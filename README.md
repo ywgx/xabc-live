@@ -185,8 +185,6 @@ Output: `build/FoloToy-AI-Passport-full.bin`, flashed at `0x0`. Development note
 - No acoustic echo cancellation: echo suppression works on loudness, so talking softly while the assistant speaks is treated as echo; speak up, press OK, or lower the volume.
 - The API key is stored in the device flash and can be read by whoever holds the device; use it only on your own device
   and limit or rotate the key in the XAI Router console if needed.
-- Only XAI Router's official OpenAI Live API (`/v1/live/sessions`) is implemented. Codex Live V3 is WebRTC-only and would need
-  an extra relay service.
 - Some Wi-Fi 7 routers were seen to keep a broken client state after the device re-associates without a clean disconnect
   (for example after a reset): DHCP/DNS work but all TCP is dropped. The firmware's TCP check recovers by reconnecting
   cleanly; give the device a 2.4 GHz WPA2 SSID outside any MLO group.
